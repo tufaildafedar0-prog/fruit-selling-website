@@ -1,0 +1,286 @@
+# 🍎 Fruitify - Premium Fruit E-Commerce Platform
+
+A complete, production-ready full-stack e-commerce platform for fresh fruit delivery with retail and wholesale pricing options. Built with modern technologies and premium UI/UX design.
+
+![Fruitify](https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=1200&h=400&fit=crop)
+
+## ✨ Features
+
+### 🛍️ Customer Features
+- **Dual Pricing System** - Retail and wholesale options
+- **Smart Product Search** - Advanced filtering and pagination
+- **Shopping Cart** - Persistent cart with localStorage
+- **Secure Checkout** - Order placement with validation
+- **Order Confirmation** - Beautiful success page with animations
+- **Contact Support** - WhatsApp integration + contact form
+
+### 👨‍💼 Admin Features
+- **Product Management** - Full CRUD operations
+- **Inventory Control** - Stock management
+- **Price Management** - Separate retail/wholesale pricing
+- **Category Management** - Organize products
+- **Featured Products** - Highlight special items
+
+### 🎨 Design Excellence
+- **v0.dev-style UI** - Premium, modern interface
+- **Framer Motion** - Smooth animations throughout
+- **Glassmorphism** - Transparent, blurred effects
+- **Responsive Design** - Mobile-first approach
+- **Premium Typography** - Google Fonts (Inter + Outfit)
+- **Custom Color Palette** - Fresh fruit-inspired colors
+
+## 🚀 Tech Stack
+
+### Backend
+- **Node.js** + **Express** - RESTful API server
+- **Prisma ORM** - Type-safe database client
+- **MySQL** - Relational database
+- **JWT** - Secure authentication
+- **bcrypt** - Password hashing
+
+### Frontend
+- **React** 18 - UI library
+- **Vite** - Lightning-fast build tool
+- **TailwindCSS** 3 - Utility-first CSS
+- **Framer Motion** - Animation library
+- **React Router** v6 - Client-side routing
+- **Axios** - HTTP client
+- **React Hot Toast** - Notifications
+
+## 📁 Project Structure
+
+```
+fruitify/
+├── backend/
+│   ├── prisma/
+│   │   ├── schema.prisma       # Database models
+│   │   └── seed.js             # Sample data
+│   ├── src/
+│   │   ├── config/
+│   │   │   └── database.js     # Prisma client
+│   │   ├── controllers/
+│   │   │   ├── auth.controller.js
+│   │   │   ├── product.controller.js
+│   │   │   └── order.controller.js
+│   │   ├── middleware/
+│   │   │   ├── auth.js         # JWT middleware
+│   │   │   ├── errorHandler.js
+│   │   │   └── validation.js
+│   │   ├── routes/
+│   │   │   ├── auth.routes.js
+│   │   │   ├── product.routes.js
+│   │   │   └── order.routes.js
+│   │   └── server.js           # Express app
+│   └── package.json
+│
+└── frontend/
+    ├── src/
+    │   ├── components/         # Reusable UI components
+    │   ├── pages/             # Page components
+    │   ├── context/           # React Context providers
+    │   ├── utils/             # Helper functions
+    │   ├── App.jsx            # Main app with routing
+    │   ├── main.jsx           # Entry point
+    │   └── index.css          # Global styles
+    ├── index.html
+    ├── tailwind.config.js
+    └── package.json
+```
+
+## 🏃 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- MySQL 8.0+
+- npm or yarn
+
+### 1. Backend Setup
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Install dependencies
+npm install
+
+# Create .env file
+copy .env.example .env
+
+# Edit .env with your database credentials
+# DATABASE_URL="mysql://root:password@localhost:3306/fruitify"
+# JWT_SECRET=your-secret-key
+
+# Generate Prisma Client
+npx prisma generate
+
+# Run migrations
+npx prisma migrate dev --name init
+
+# Seed database with sample data
+npm run seed
+
+# Start backend server
+npm run dev
+```
+
+Backend will run on `http://localhost:5000`
+
+### 2. Frontend Setup
+
+```bash
+# Open new terminal and navigate to frontend
+cd frontend
+
+# Install dependencies
+npm install
+
+# Create .env file (optional, default proxy is configured)
+copy .env.example .env
+
+# Start development server
+npm run dev
+```
+
+Frontend will run on `http://localhost:5173`
+
+## 🔑 Default Credentials
+
+**Admin Account:**
+- Email: `admin@fruitify.com`
+- Password: `admin123`
+
+## 📚 API Documentation
+
+### Base URL
+```
+http://localhost:5000/api
+```
+
+### Endpoints
+
+#### Authentication
+- `POST /auth/register` - Register new user
+- `POST /auth/login` - Login user
+- `GET /auth/me` - Get current user (protected)
+
+#### Products
+- `GET /products` - Get all products (with filters)
+- `GET /products/:id` - Get single product
+- `POST /products` - Create product (admin)
+- `PUT /products/:id` - Update product (admin)
+- `DELETE /products/:id` - Delete product (admin)
+- `GET /products/categories` - Get all categories
+
+#### Orders
+- `POST /orders` - Create order
+- `GET /orders` - Get orders (authenticated)
+- `GET /orders/:id` - Get order details
+- `PATCH /orders/:id/status` - Update order status (admin)
+
+## 🎨 Design System
+
+### Colors
+```css
+Primary (Green):   #22c55e - Fresh, natural
+Secondary (Orange): #f97316 - Energetic, appetizing
+Accent (Yellow):    #eab308 - Bright, attention-grabbing
+```
+
+### Typography
+- **Headings:** Outfit (Bold, 700-900)
+- **Body:** Inter (Regular, 400-600)
+
+### Shadows
+- `shadow-premium` - Standard card elevation
+- `shadow-premium-lg` - Enhanced depth
+- `shadow-glow` - Subtle green glow
+
+## 🌐 Pages
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Home | `/` | Hero, featured products, testimonials |
+| Retail Shop | `/retail` | Product grid with filters |
+| Wholesale | `/wholesale` | Bulk order products |
+| Product Details | `/product/:id` | Detailed product view |
+| Cart | `/cart` | Shopping cart management |
+| Checkout | `/checkout` | Order placement form |
+| Success | `/payment-success` | Order confirmation |
+| Contact | `/contact` | Contact form + WhatsApp |
+| Login | `/login` | Authentication |
+| Admin | `/admin` | Product CRUD (protected) |
+
+## 🔐 Security Features
+
+- JWT-based authentication
+- Password hashing with bcrypt
+- Protected API routes
+- Input validation
+- SQL injection prevention (Prisma)
+- XSS protection
+
+## 🚢 Deployment
+
+### Backend (Render/Railway)
+1. Push code to GitHub
+2. Create new Web Service
+3. Set environment variables
+4. Deploy!
+
+### Frontend (Vercel)
+1. Push code to GitHub
+2. Import project in Vercel
+3. Set `VITE_API_URL` environment variable
+4. Deploy!
+
+### Database (PlanetScale/Railway)
+1. Create MySQL database
+2. Update `DATABASE_URL` in backend
+3. Run migrations
+
+## 📊 Database Schema
+
+### Models
+- **User** - Authentication and roles
+- **Product** - Fruit products with dual pricing
+- **Order** - Customer orders
+- **OrderItem** - Order line items
+
+## 🧪 Testing
+
+```bash
+# Backend
+cd backend
+npm test
+
+# Frontend
+cd frontend
+npm test
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 👨‍💻 Author
+
+**Fruitify Team**
+
+## 🙏 Acknowledgments
+
+- Design inspiration from [v0.dev](https://v0.dev)
+- Icons from [Lucide](https://lucide.dev)
+- Images from [Unsplash](https://unsplash.com)
+- Fonts from [Google Fonts](https://fonts.google.com)
+
+---
+
+Built with ❤️ for fresh fruit lovers everywhere! 🍎🍊🍇🥭🍓
