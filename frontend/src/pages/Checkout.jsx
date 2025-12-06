@@ -1,15 +1,18 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Lock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 const Checkout = () => {
     const navigate = useNavigate();
     const { cart, getCartTotal, clearCart } = useCart();
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
+    const [razorpayLoaded, setRazorpayLoaded] = useState(false); // ADDED: Track Razorpay script loading
     const [formData, setFormData] = useState({
         customerName: '',
         customerEmail: '',
@@ -19,16 +22,62 @@ const Checkout = () => {
         shippingZip: '',
     });
 
+    // ADDED: Load Razorpay script on component mount
+    useEffect(() => {
+        const loadRazorpayScript = () => {
+            return new Promise((resolve) => {
+                // Check if script already loaded
+                if (window.Razorpay) {
+                    setRazorpayLoaded(true);
+                    resolve(true);
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                script.async = true;
+                script.onload = () => {
+                    setRazorpayLoaded(true);
+                    resolve(true);
+                };
+                script.onerror = () => {
+                    console.error('Failed to load Razorpay script');
+                    resolve(false);
+                };
+                document.body.appendChild(script);
+            });
+        };
+
+        loadRazorpayScript();
+    }, []);
+
+    // Pre-fill form with user data if logged in
+    useEffect(() => {
+        if (user) {
+            setFormData(prev => ({
+                ...prev,
+                customerName: user.name || '',
+                customerEmail: user.email || '',
+                customerPhone: user.phone || '',
+                shippingAddress: user.address || '',
+                shippingCity: user.city || '',
+                shippingZip: user.zip || '',
+            }));
+        }
+    }, [user]);
+
     const subtotal = getCartTotal();
     const tax = subtotal * 0.08;
     const shipping = subtotal > 50 ? 0 : 5.99;
     const total = subtotal + tax + shipping;
 
+    // MODIFIED: Handle Razorpay payment flow
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         try {
+            // Step 1: Create order in database (existing logic preserved)
             const orderData = {
                 items: cart.map((item) => ({
                     productId: item.product.id,
@@ -38,15 +87,89 @@ const Checkout = () => {
                 ...formData,
             };
 
-            const response = await api.post('/orders', orderData);
+            const orderResponse = await api.post('/orders', orderData);
+            const order = orderResponse.data.data.order;
 
-            // Clear cart and navigate to success page
-            clearCart();
-            toast.success('Order placed successfully!');
-            navigate(`/payment-success?orderId=${response.data.data.order.id}`);
+            // Step 2: Create Razorpay payment order
+            const paymentOrderResponse = await api.post('/payments/create-order', {
+                orderId: order.id,
+                amount: order.total,
+            });
+
+            const { orderId: razorpayOrderId, amount, currency, keyId } = paymentOrderResponse.data.data;
+
+            // Step 3: Open Razorpay checkout
+            const options = {
+                key: keyId,
+                amount: amount,
+                currency: currency,
+                name: 'Fruitify',
+                description: `Order #${order.id}`,
+                order_id: razorpayOrderId,
+                handler: async function (response) {
+                    // Payment success handler
+                    await handlePaymentSuccess(response, order.id);
+                },
+                prefill: {
+                    name: formData.customerName,
+                    email: formData.customerEmail,
+                    contact: formData.customerPhone || '',
+                },
+                theme: {
+                    color: '#10b981', // Primary green color
+                },
+                modal: {
+                    ondismiss: function () {
+                        // Payment cancelled/failed
+                        handlePaymentFailure(order.id, 'Payment cancelled by user');
+                    }
+                }
+            };
+
+            const razorpay = new window.Razorpay(options);
+            razorpay.open();
+
         } catch (error) {
             console.error('Error creating order:', error);
             toast.error(error.response?.data?.error || 'Failed to place order');
+            setLoading(false);
+        }
+    };
+
+    // ADDED: Handle successful payment
+    const handlePaymentSuccess = async (paymentResponse, orderId) => {
+        try {
+            // Verify payment on backend
+            await api.post('/payments/verify', {
+                razorpayOrderId: paymentResponse.razorpay_order_id,
+                razorpayPaymentId: paymentResponse.razorpay_payment_id,
+                razorpaySignature: paymentResponse.razorpay_signature,
+                orderId: orderId,
+            });
+
+            // Payment verified successfully
+            clearCart();
+            toast.success('Payment successful! Order confirmed.');
+            navigate(`/payment-success?orderId=${orderId}`);
+        } catch (error) {
+            console.error('Payment verification failed:', error);
+            toast.error('Payment verification failed. Please contact support.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ADDED: Handle payment failure
+    const handlePaymentFailure = async (orderId, reason) => {
+        try {
+            await api.post('/payments/failure', {
+                orderId: orderId,
+                reason: reason,
+            });
+
+            toast.error('Payment failed. Please try again.');
+        } catch (error) {
+            console.error('Error handling payment failure:', error);
         } finally {
             setLoading(false);
         }
@@ -186,7 +309,7 @@ const Checkout = () => {
                         </div>
                     </motion.div>
 
-                    {/* Payment (Dummy) */}
+                    {/* Payment - Razorpay */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -197,10 +320,13 @@ const Checkout = () => {
                         <div className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white p-6 rounded-xl">
                             <div className="flex items-center space-x-3 mb-4">
                                 <CreditCard className="w-6 h-6" />
-                                <span className="text-lg font-semibold">Demo Payment</span>
+                                <span className="text-lg font-semibold">Secure Payment via Razorpay</span>
                             </div>
-                            <p className="text-sm text-primary-50">
-                                This is a demonstration checkout. No actual payment will be processed.
+                            <p className="text-sm text-primary-50 mb-2">
+                                Pay securely using Credit Card, Debit Card, UPI, or Net Banking.
+                            </p>
+                            <p className="text-xs text-primary-100">
+                                🔒 TEST MODE - Use test cards only
                             </p>
                         </div>
                     </motion.div>

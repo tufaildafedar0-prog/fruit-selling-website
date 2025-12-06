@@ -15,6 +15,7 @@ const Navbar = () => {
         { name: 'Home', path: '/' },
         { name: 'Retail', path: '/retail' },
         { name: 'Wholesale', path: '/wholesale' },
+        ...(user ? [{ name: 'My Orders', path: '/my-orders' }] : []),
         { name: 'Contact', path: '/contact' },
     ];
 
@@ -84,12 +85,16 @@ const Navbar = () => {
                                         Admin
                                     </Link>
                                 )}
-                                <div className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-xl">
+                                <Link
+                                    to="/profile"
+                                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                                    title="My Profile"
+                                >
                                     <User className="w-4 h-4 text-gray-600" />
                                     <span className="text-sm font-medium text-gray-700">
                                         {user.name || user.email.split('@')[0]}
                                     </span>
-                                </div>
+                                </Link>
                                 <button
                                     onClick={logout}
                                     className="p-2 hover:bg-red-50 rounded-xl transition-colors text-red-600"
@@ -162,14 +167,18 @@ const Navbar = () => {
                                             Admin Dashboard
                                         </Link>
                                     )}
-                                    <div className="px-4 py-2 bg-gray-100 rounded-lg">
+                                    <Link
+                                        to="/profile"
+                                        onClick={() => setIsOpen(false)}
+                                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                    >
                                         <div className="flex items-center space-x-2">
                                             <User className="w-4 h-4 text-gray-600" />
                                             <span className="text-sm font-medium text-gray-700">
-                                                {user.name || user.email}
+                                                My Profile
                                             </span>
                                         </div>
-                                    </div>
+                                    </Link>
                                     <button
                                         onClick={() => {
                                             logout();

@@ -11,14 +11,23 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orders    Order[]
+  id                  Int       @id @default(autoincrement())
+  email               String    @unique
+  password            String
+  name                String?
+  phone               String?
+  address             String?
+  city                String?
+  zip                 String?
+  emailVerified       Boolean   @default(false)
+  emailVerifyToken    String?
+  emailVerifyExpiry   DateTime?
+  passwordResetToken  String?
+  passwordResetExpiry DateTime?
+  role                Role      @default(CUSTOMER)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  orders              Order[]
 
   @@map("users")
 }
@@ -64,6 +73,14 @@ model Order {
   shippingCity    String
   shippingZip     String
   
+  // Payment details (nullable for backward compatibility)
+  paymentStatus      PaymentStatus? @default(PENDING)
+  paymentMethod      String?
+  razorpayOrderId    String?
+  razorpayPaymentId  String?
+  razorpaySignature  String?
+  paidAt             DateTime?
+  
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   orderItems OrderItem[]
@@ -74,7 +91,7 @@ model Order {
 enum OrderStatus {
   PENDING
   PROCESSING
-  SHIPPED
+  OUT_FOR_DELIVERY
   DELIVERED
   CANCELLED
 }
@@ -82,6 +99,13 @@ enum OrderStatus {
 enum OrderType {
   RETAIL
   WHOLESALE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
 }
 
 model OrderItem {
@@ -96,4 +120,26 @@ model OrderItem {
   createdAt DateTime @default(now())
 
   @@map("order_items")
+}
+
+model WebsiteSettings {
+  id              Int      @id @default(autoincrement())
+  siteName        String   @default("Fruitify")
+  logoUrl         String?  @db.Text
+  tagline         String?  @db.Text
+  contactEmail    String   @default("contact@fruitify.com")
+  contactPhone    String?
+  address         String?  @db.Text
+  city            String?
+  zip             String?
+  footerText      String?  @db.Text
+  supportEmail    String?
+  facebookUrl     String?  @db.Text
+  twitterUrl      String?  @db.Text
+  instagramUrl    String?  @db.Text
+  maintenanceMode Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("website_settings")
 }

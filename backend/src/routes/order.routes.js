@@ -4,22 +4,25 @@ import {
     getAllOrders,
     getOrderById,
     updateOrderStatus,
+    getMyOrders,
+    getMyOrderById,
 } from '../controllers/order.controller.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { validate, orderValidation } from '../middleware/validation.js';
 
 const router = express.Router();
 
-// All order routes require authentication
-router.post('/', validate(orderValidation.create), createOrder);
+// Public route - create order
+router.post('/', authenticate, validate(orderValidation.create), createOrder);
 
-// Get orders - returns user's orders or all orders for admin
+
+// Customer routes - view own orders
+router.get('/my-orders', authenticate, getMyOrders);
+router.get('/my-orders/:id', authenticate, getMyOrderById);
+
+// Admin routes - manage all orders
 router.get('/', authenticate, getAllOrders);
-
-// Get specific order
 router.get('/:id', authenticate, getOrderById);
-
-// Update order status - admin only
 router.patch('/:id/status', authenticate, authorize('ADMIN'), updateOrderStatus);
 
 export default router;

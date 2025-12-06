@@ -1,5 +1,8 @@
 import prisma from '../config/database.js';
 import { AppError } from '../middleware/errorHandler.js';
+import telegramService from '../services/telegram.service.js';
+import emailService from '../services/email.service.js';
+import socketService from '../services/socket.service.js';
 
 export const createOrder = async (req, res, next) => {
     try {
@@ -103,6 +106,14 @@ export const createOrder = async (req, res, next) => {
 
             return newOrder;
         });
+
+        // Send notifications (don't await - run in background)
+        telegramService.notifyNewOrder(order).catch(err =>
+            console.error('Telegram notification failed:', err.message)
+        );
+        emailService.notifyNewOrder(order).catch(err =>
+            console.error('Email notification failed:', err.message)
+        );
 
         res.status(201).json({
             success: true,
@@ -216,16 +227,66 @@ export const getOrderById = async (req, res, next) => {
 export const updateOrderStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const {
+            deliveryStatus,
+            status,
+            paymentStatus,
+            paymentMethod,
+            transactionId,
+            paidAt
+        } = req.body;
 
-        const validStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-        if (!validStatuses.includes(status)) {
-            throw new AppError('Invalid order status', 400);
+        // Get current order before update to capture old status
+        const currentOrder = await prisma.order.findUnique({
+            where: { id: parseInt(id) },
+            select: { status: true, userId: true },
+        });
+
+        if (!currentOrder) {
+            throw new AppError('Order not found', 404);
+        }
+
+        const oldStatus = currentOrder.status;
+
+        // Build update data
+        const updateData = {};
+        let statusChanged = false;
+        let paymentChanged = false;
+
+        if (deliveryStatus || status) {
+            const newStatus = deliveryStatus || status;
+            const validStatuses = ['PENDING', 'PROCESSING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
+            if (!validStatuses.includes(newStatus)) {
+                throw new AppError('Invalid delivery status', 400);
+            }
+            updateData.status = newStatus;
+            statusChanged = true;
+        }
+
+        if (paymentStatus) {
+            const validPaymentStatuses = ['PENDING', 'PAID', 'FAILED', 'REFUNDED'];
+            if (!validPaymentStatuses.includes(paymentStatus)) {
+                throw new AppError('Invalid payment status', 400);
+            }
+            updateData.paymentStatus = paymentStatus;
+            paymentChanged = true;
+
+            if (paymentStatus === 'PAID' && !currentOrder.paidAt) {
+                updateData.paidAt = paidAt || new Date();
+            }
+        }
+
+        if (paymentMethod) {
+            updateData.paymentMethod = paymentMethod;
+        }
+
+        if (transactionId) {
+            updateData.transactionId = transactionId;
         }
 
         const order = await prisma.order.update({
             where: { id: parseInt(id) },
-            data: { status },
+            data: updateData,
             include: {
                 orderItems: {
                     include: {
@@ -235,10 +296,147 @@ export const updateOrderStatus = async (req, res, next) => {
             },
         });
 
+        // Send email notifications (don't await - run in background)
+        if (paymentChanged) {
+            emailService.sendPaymentUpdate(order).catch(err =>
+                console.error('Payment email failed:', err.message)
+            );
+        }
+
+        if (statusChanged) {
+            emailService.sendDeliveryUpdate(order).catch(err =>
+                console.error('Delivery email failed:', err.message)
+            );
+
+            // Emit real-time socket event for order status update
+            if (order.userId) {
+                socketService.emitOrderStatusUpdate(order.userId, {
+                    orderId: order.id,
+                    userId: order.userId,
+                    oldStatus: oldStatus,
+                    newStatus: order.status,
+                    updatedAt: new Date().toISOString(),
+                });
+            }
+        }
+
         res.json({
             success: true,
             message: 'Order status updated successfully',
             data: { order },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ============ CUSTOMER ORDER ENDPOINTS ============
+
+export const getMyOrders = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 10, status } = req.query;
+        const userId = req.user.id;
+
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const take = parseInt(limit);
+
+        // Build where clause
+        const where = { userId: userId };
+
+        if (status && status !== 'ALL') {
+            where.status = status;
+        }
+
+        // Get total count for pagination
+        const total = await prisma.order.count({ where });
+
+        // Get orders with related data
+        const orders = await prisma.order.findMany({
+            where,
+            include: {
+                orderItems: {
+                    include: {
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                imageUrl: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+            skip,
+            take,
+        });
+
+        res.json({
+            success: true,
+            data: {
+                orders,
+                pagination: {
+                    total,
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    totalPages: Math.ceil(total / parseInt(limit)),
+                },
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getMyOrderById = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const order = await prisma.order.findFirst({
+            where: {
+                id: parseInt(id),
+                userId: userId,
+            },
+            include: {
+                orderItems: {
+                    include: {
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                description: true,
+                                imageUrl: true,
+                                category: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!order) {
+            throw new AppError('Order not found or you do not have permission to view it', 404);
+        }
+
+        // Build timeline
+        const timeline = {
+            ordered: order.createdAt,
+            processed: order.processedAt,
+            shipped: order.shippedAt,
+            delivered: order.deliveredAt,
+        };
+
+        res.json({
+            success: true,
+            data: {
+                order: {
+                    ...order,
+                    timeline,
+                },
+            },
         });
     } catch (error) {
         next(error);

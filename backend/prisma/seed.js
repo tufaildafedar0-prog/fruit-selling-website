@@ -6,19 +6,36 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting database seed...');
 
-  // Create admin user
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+
+  // Create admin user with secure credentials
+  const hashedPassword = await bcrypt.hash('FRT!2025$SecurePanel@92', 10);
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@fruitify.com' },
+    where: { email: 'fruitify.admin@secure.com' },
     update: {},
     create: {
-      email: 'admin@fruitify.com',
+      email: 'fruitify.admin@secure.com',
       password: hashedPassword,
       name: 'Admin User',
       role: 'ADMIN',
+      emailVerified: true,
     },
   });
   console.log('✅ Admin user created:', admin.email);
+
+  // Create default website settings
+  const settings = await prisma.websiteSettings.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      siteName: 'Fruitify',
+      tagline: 'Fresh Fruits Delivered to Your Door',
+      contactEmail: 'contact@fruitify.com',
+      footerText: '© 2025 Fruitify. All rights reserved. Delivering fresh, quality fruits to your doorstep.',
+      maintenanceMode: false,
+    },
+  });
+  console.log('✅ Website settings created');
+
 
   // Sample products with professional fruit data
   const products = [
