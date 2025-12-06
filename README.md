@@ -7,19 +7,29 @@ A complete, production-ready full-stack e-commerce platform for fresh fruit deli
 ## ✨ Features
 
 ### 🛍️ Customer Features
+- **Razorpay Payment Gateway** - Secure online payments (Cards, UPI, Net Banking, Wallets)
 - **Dual Pricing System** - Retail and wholesale options
+- **User Authentication** - Email verification, password reset, profile management
+- **My Orders** - Track order status with real-time updates
 - **Smart Product Search** - Advanced filtering and pagination
 - **Shopping Cart** - Persistent cart with localStorage
-- **Secure Checkout** - Order placement with validation
-- **Order Confirmation** - Beautiful success page with animations
+- **Secure Checkout** - Order placement with payment integration
+- **Order Tracking** - Real-time order status updates via WebSockets
+- **Email Notifications** - Order confirmations and status updates
 - **Contact Support** - WhatsApp integration + contact form
 
 ### 👨‍💼 Admin Features
-- **Product Management** - Full CRUD operations
-- **Inventory Control** - Stock management
+- **Admin Dashboard** - Real-time statistics and analytics
+- **Product Management** - Full CRUD operations with image upload
+- **Order Management** - View, update order status, payment tracking
+- **User Management** - View and manage customer accounts
+- **Payment Tracking** - Razorpay payment status and transaction IDs
+- **Inventory Control** - Stock management and alerts
 - **Price Management** - Separate retail/wholesale pricing
 - **Category Management** - Organize products
 - **Featured Products** - Highlight special items
+- **Settings Management** - Configure site settings
+- **Real-time Notifications** - Socket.io + Telegram integration
 
 ### 🎨 Design Excellence
 - **v0.dev-style UI** - Premium, modern interface
@@ -37,6 +47,10 @@ A complete, production-ready full-stack e-commerce platform for fresh fruit deli
 - **MySQL** - Relational database
 - **JWT** - Secure authentication
 - **bcrypt** - Password hashing
+- **Razorpay SDK** - Payment gateway integration
+- **Socket.io** - Real-time order updates
+- **Nodemailer** - Email notifications
+- **Telegram Bot API** - Admin notifications
 
 ### Frontend
 - **React** 18 - UI library
@@ -176,6 +190,18 @@ http://localhost:5000/api
 - `GET /orders` - Get orders (authenticated)
 - `GET /orders/:id` - Get order details
 - `PATCH /orders/:id/status` - Update order status (admin)
+
+#### Payments (Razorpay)
+- `POST /payments/create-order` - Create Razorpay payment order
+- `POST /payments/verify` - Verify payment signature
+- `POST /payments/failure` - Handle payment failure
+- `GET /payments/status/:id` - Get payment status
+
+#### Admin
+- `GET /admin/dashboard` - Dashboard statistics
+- `GET /admin/orders` - Manage all orders
+- `GET /admin/users` - Manage users
+- `GET /admin/settings` - Site settings
 
 ## 🎨 Design System
 
