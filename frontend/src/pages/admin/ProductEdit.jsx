@@ -158,7 +158,7 @@ const ProductEdit = () => {
                         {/* Retail Price */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Retail Price ($) *
+                                Retail Price (₹) *
                             </label>
                             <input
                                 type="number"
@@ -169,14 +169,14 @@ const ProductEdit = () => {
                                 step="0.01"
                                 min="0"
                                 className="input w-full"
-                                placeholder="3.99"
+                                placeholder="150"
                             />
                         </div>
 
                         {/* Wholesale Price */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                Wholesale Price ($) *
+                                Wholesale Price (₹) *
                             </label>
                             <input
                                 type="number"
@@ -187,7 +187,7 @@ const ProductEdit = () => {
                                 step="0.01"
                                 min="0"
                                 className="input w-full"
-                                placeholder="2.50"
+                                placeholder="110"
                             />
                         </div>
 
