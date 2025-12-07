@@ -27,11 +27,18 @@ export const CartProvider = ({ children }) => {
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
 
-    const addToCart = (product, quantity = 1, orderType = 'RETAIL') => {
+    // NEW: Updated to handle variants
+    const addToCart = (product, quantity = 1, orderType = 'RETAIL', variant = null) => {
         setCart((prevCart) => {
-            // Check if product already exists in cart with same order type
+            // NEW: Create unique item key including variant
+            const variantId = variant?.id || null;
+
+            // Check if product with same variant already exists in cart
             const existingItemIndex = prevCart.findIndex(
-                (item) => item.product.id === product.id && item.orderType === orderType
+                (item) =>
+                    item.product.id === product.id &&
+                    item.orderType === orderType &&
+                    item.variant?.id === variantId // NEW: Match variant too
             );
 
             if (existingItemIndex > -1) {
@@ -41,31 +48,44 @@ export const CartProvider = ({ children }) => {
                 toast.success('Updated cart quantity');
                 return newCart;
             } else {
-                // Add new item
+                // Add new item with variant
                 toast.success('Added to cart!');
-                return [...prevCart, { product, quantity, orderType }];
+                return [...prevCart, {
+                    product,
+                    quantity,
+                    orderType,
+                    variant // NEW: Store selected variant
+                }];
             }
         });
     };
 
-    const removeFromCart = (productId, orderType) => {
+    // NEW: Updated to handle variants
+    const removeFromCart = (productId, orderType, variantId = null) => {
         setCart((prevCart) =>
             prevCart.filter(
-                (item) => !(item.product.id === productId && item.orderType === orderType)
+                (item) => !(
+                    item.product.id === productId &&
+                    item.orderType === orderType &&
+                    item.variant?.id === variantId // NEW: Match variant too
+                )
             )
         );
         toast.success('Removed from cart');
     };
 
-    const updateQuantity = (productId, orderType, newQuantity) => {
+    // NEW: Updated to handle variants
+    const updateQuantity = (productId, orderType, newQuantity, variantId = null) => {
         if (newQuantity <= 0) {
-            removeFromCart(productId, orderType);
+            removeFromCart(productId, orderType, variantId);
             return;
         }
 
         setCart((prevCart) =>
             prevCart.map((item) =>
-                item.product.id === productId && item.orderType === orderType
+                item.product.id === productId &&
+                    item.orderType === orderType &&
+                    item.variant?.id === variantId // NEW: Match variant too
                     ? { ...item, quantity: newQuantity }
                     : item
             )
@@ -77,13 +97,21 @@ export const CartProvider = ({ children }) => {
         toast.success('Cart cleared');
     };
 
+    // NEW: Updated to calculate price from variant
     const getCartTotal = () => {
         return cart.reduce((total, item) => {
-            const price =
-                item.orderType === 'WHOLESALE'
+            // Use variant price if available, fallback to product price
+            let price;
+            if (item.variant) {
+                price = item.orderType === 'WHOLESALE'
+                    ? parseFloat(item.variant.wholesalePrice)
+                    : parseFloat(item.variant.retailPrice);
+            } else {
+                price = item.orderType === 'WHOLESALE'
                     ? parseFloat(item.product.wholesalePrice)
                     : parseFloat(item.product.retailPrice);
-            return total + price * item.quantity;
+            }
+            return total + (price * item.quantity);
         }, 0);
     };
 

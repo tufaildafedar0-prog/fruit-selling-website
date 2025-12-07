@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import { formatINR } from '../utils/currency';
 
 const Checkout = () => {
     const navigate = useNavigate();
@@ -67,8 +68,8 @@ const Checkout = () => {
     }, [user]);
 
     const subtotal = getCartTotal();
-    const tax = subtotal * 0.08;
-    const shipping = subtotal > 50 ? 0 : 5.99;
+    const tax = subtotal * 0.05; // 5% GST for India
+    const shipping = subtotal > 500 ? 0 : 40; // Free shipping above ₹500
     const total = subtotal + tax + shipping;
 
     // MODIFIED: Handle Razorpay payment flow
@@ -81,6 +82,7 @@ const Checkout = () => {
             const orderData = {
                 items: cart.map((item) => ({
                     productId: item.product.id,
+                    variantId: item.variant?.id, // NEW: Include variant ID
                     quantity: item.quantity,
                     orderType: item.orderType,
                 })),

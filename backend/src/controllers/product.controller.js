@@ -53,6 +53,12 @@ export const getAllProducts = async (req, res, next) => {
                 skip,
                 take,
                 orderBy,
+                // NEW: Include variants for India-specific quantity selection
+                include: {
+                    variants: {
+                        orderBy: { sortOrder: 'asc' }
+                    }
+                }
             }),
             prisma.product.count({ where }),
         ]);
@@ -80,6 +86,12 @@ export const getProductById = async (req, res, next) => {
 
         const product = await prisma.product.findUnique({
             where: { id: parseInt(id) },
+            // NEW: Include variants for India-specific quantity selection
+            include: {
+                variants: {
+                    orderBy: { sortOrder: 'asc' }
+                }
+            }
         });
 
         if (!product) {
@@ -107,20 +119,50 @@ export const createProduct = async (req, res, next) => {
             category,
             stock,
             featured = false,
+            defaultUnit = 'kg', // NEW: Default unit for variants
+            variants = [] // NEW: Variants array
         } = req.body;
 
+        // Calculate total stock across all variants
+        const totalStock = variants.length > 0
+            ? variants.reduce((sum, v) => sum + (v.stock || 0), 0)
+            : parseInt(stock || 0);
+
+        const productData = {
+            name,
+            description,
+            retailPrice: parseFloat(retailPrice),
+            wholesalePrice: parseFloat(wholesalePrice),
+            minQtyWholesale: parseInt(minQtyWholesale),
+            imageUrl,
+            category,
+            stock: totalStock,
+            featured,
+            defaultUnit
+        };
+
+        // NEW: Create variants if provided
+        if (variants.length > 0) {
+            productData.variants = {
+                create: variants.map((variant, index) => ({
+                    quantity: parseFloat(variant.quantity),
+                    unit: variant.unit,
+                    displayName: variant.displayName || `${variant.quantity} ${variant.unit}`,
+                    retailPrice: parseFloat(variant.retailPrice),
+                    wholesalePrice: parseFloat(variant.wholesalePrice),
+                    minQtyWholesale: parseInt(variant.minQtyWholesale || minQtyWholesale),
+                    stock: parseInt(variant.stock || 0),
+                    sortOrder: variant.sortOrder !== undefined ? variant.sortOrder : index,
+                    isDefault: variant.isDefault || index === 0
+                }))
+            };
+        }
+
         const product = await prisma.product.create({
-            data: {
-                name,
-                description,
-                retailPrice: parseFloat(retailPrice),
-                wholesalePrice: parseFloat(wholesalePrice),
-                minQtyWholesale: parseInt(minQtyWholesale),
-                imageUrl,
-                category,
-                stock: parseInt(stock),
-                featured,
-            },
+            data: productData,
+            include: {
+                variants: true
+            }
         });
 
         res.status(201).json({

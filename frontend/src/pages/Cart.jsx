@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { formatINR } from '../utils/currency';
 
 const Cart = () => {
     const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
@@ -27,8 +28,8 @@ const Cart = () => {
     }
 
     const subtotal = getCartTotal();
-    const tax = subtotal * 0.08; // 8% tax
-    const shipping = subtotal > 50 ? 0 : 5.99;
+    const tax = subtotal * 0.05; // 5% GST for India
+    const shipping = subtotal > 500 ? 0 : 40; // Free shipping above ₹500
     const total = subtotal + tax + shipping;
 
     return (
@@ -48,7 +49,7 @@ const Cart = () => {
                     <div className="lg:col-span-2 space-y-4">
                         {cart.map((item, index) => (
                             <motion.div
-                                key={`${item.product.id}-${item.orderType}`}
+                                key={`${item.product.id}-${item.orderType}-${item.variant?.id || 'no-variant'}`}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
@@ -71,12 +72,18 @@ const Cart = () => {
                                                 <h3 className="text-lg font-bold text-gray-900 mb-1">
                                                     {item.product.name}
                                                 </h3>
+                                                {/* NEW: Show variant if selected */}
+                                                {item.variant && (
+                                                    <p className="text-sm font-semibold text-primary-600 mb-1">
+                                                        {item.variant.displayName}
+                                                    </p>
+                                                )}
                                                 <p className="text-sm text-gray-600">{item.product.category}</p>
                                                 <div className="mt-1">
                                                     <span
                                                         className={`text-xs px-2 py-1 rounded-full ${item.orderType === 'WHOLESALE'
-                                                                ? 'bg-purple-100 text-purple-700'
-                                                                : 'bg-primary-100 text-primary-700'
+                                                            ? 'bg-purple-100 text-purple-700'
+                                                            : 'bg-primary-100 text-primary-700'
                                                             }`}
                                                     >
                                                         {item.orderType}
@@ -84,7 +91,7 @@ const Cart = () => {
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => removeFromCart(item.product.id, item.orderType)}
+                                                onClick={() => removeFromCart(item.product.id, item.orderType, item.variant?.id)}
                                                 className="p-2 hover:bg-red-50 rounded-lg transition-colors text-red-600"
                                             >
                                                 <Trash2 className="w-5 h-5" />
@@ -96,7 +103,7 @@ const Cart = () => {
                                             <div className="flex items-center space-x-2">
                                                 <button
                                                     onClick={() =>
-                                                        updateQuantity(item.product.id, item.orderType, item.quantity - 1)
+                                                        updateQuantity(item.product.id, item.orderType, item.quantity - 1, item.variant?.id)
                                                     }
                                                     className="w-8 h-8 rounded-lg border-2 border-gray-300 hover:border-primary-500 flex items-center justify-center transition-colors"
                                                 >
@@ -107,7 +114,7 @@ const Cart = () => {
                                                 </span>
                                                 <button
                                                     onClick={() =>
-                                                        updateQuantity(item.product.id, item.orderType, item.quantity + 1)
+                                                        updateQuantity(item.product.id, item.orderType, item.quantity + 1, item.variant?.id)
                                                     }
                                                     className="w-8 h-8 rounded-lg border-2 border-gray-300 hover:border-primary-500 flex items-center justify-center transition-colors"
                                                 >
@@ -117,20 +124,20 @@ const Cart = () => {
 
                                             <div className="text-right">
                                                 <div className="text-lg font-bold text-gray-900">
-                                                    $
-                                                    {(
-                                                        (item.orderType === 'WHOLESALE'
-                                                            ? parseFloat(item.product.wholesalePrice)
-                                                            : parseFloat(item.product.retailPrice)) * item.quantity
-                                                    ).toFixed(2)}
+                                                    {(() => {
+                                                        const price = item.variant
+                                                            ? (item.orderType === 'WHOLESALE' ? parseFloat(item.variant.wholesalePrice) : parseFloat(item.variant.retailPrice))
+                                                            : (item.orderType === 'WHOLESALE' ? parseFloat(item.product.wholesalePrice) : parseFloat(item.product.retailPrice));
+                                                        return formatINR(price * item.quantity);
+                                                    })()}
                                                 </div>
                                                 <div className="text-sm text-gray-500">
-                                                    $
-                                                    {(item.orderType === 'WHOLESALE'
-                                                        ? parseFloat(item.product.wholesalePrice)
-                                                        : parseFloat(item.product.retailPrice)
-                                                    ).toFixed(2)}{' '}
-                                                    each
+                                                    {(() => {
+                                                        const price = item.variant
+                                                            ? (item.orderType === 'WHOLESALE' ? parseFloat(item.variant.wholesalePrice) : parseFloat(item.variant.retailPrice))
+                                                            : (item.orderType === 'WHOLESALE' ? parseFloat(item.product.wholesalePrice) : parseFloat(item.product.retailPrice));
+                                                        return formatINR(price);
+                                                    })()} each
                                                 </div>
                                             </div>
                                         </div>
@@ -160,26 +167,26 @@ const Cart = () => {
                             <div className="space-y-3 mb-6">
                                 <div className="flex justify-between text-gray-600">
                                     <span>Subtotal</span>
-                                    <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                                    <span className="font-semibold">{formatINR(subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between text-gray-600">
-                                    <span>Tax (8%)</span>
-                                    <span className="font-semibold">${tax.toFixed(2)}</span>
+                                    <span>GST (5%)</span>
+                                    <span className="font-semibold">{formatINR(tax)}</span>
                                 </div>
                                 <div className="flex justify-between text-gray-600">
-                                    <span>Shipping</span>
+                                    <span>Delivery</span>
                                     <span className="font-semibold">
-                                        {shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}
+                                        {shipping === 0 ? 'FREE' : formatINR(shipping)}
                                     </span>
                                 </div>
-                                {subtotal < 50 && (
+                                {subtotal < 500 && (
                                     <p className="text-xs text-green-600 bg-green-50 p-2 rounded-lg">
-                                        Add ${(50 - subtotal).toFixed(2)} more for free shipping!
+                                        Add {formatINR(500 - subtotal)} more for free delivery!
                                     </p>
                                 )}
                                 <div className="border-t pt-3 flex justify-between text-xl font-bold">
                                     <span>Total</span>
-                                    <span className="text-primary-600">${total.toFixed(2)}</span>
+                                    <span className="text-primary-600">{formatINR(total)}</span>
                                 </div>
                             </div>
 
