@@ -29,6 +29,7 @@
     "helmet": "^8.0.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
     "nodemailer": "^6.9.16",
     "razorpay": "^2.9.4",
     "socket.io": "^4.8.1"
