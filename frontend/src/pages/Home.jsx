@@ -12,12 +12,16 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Scroll to top on page load
+        window.scrollTo(0, 0);
+
         const fetchFeaturedProducts = async () => {
             try {
                 const response = await api.get('/products?featured=true&limit=6');
                 setFeaturedProducts(response.data.data.products);
             } catch (error) {
                 console.error('Error fetching featured products:', error);
+                // Even if error, show the page
             } finally {
                 setLoading(false);
             }
@@ -73,7 +77,7 @@ const Home = () => {
 
     return (
         <div className="min-h-screen">
-            {/* Hero Section */}
+            {/* Hero Section - Always shows */}
             <Hero />
 
             {/* Featured Products */}
@@ -94,8 +98,11 @@ const Home = () => {
                     </motion.div>
 
                     {loading ? (
-                        <LoadingSpinner />
-                    ) : (
+                        <div className="text-center py-12">
+                            <LoadingSpinner />
+                            <p className="text-gray-600 mt-4">Loading products... Backend is waking up (takes ~30 seconds first time)</p>
+                        </div>
+                    ) : featuredProducts.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {featuredProducts.map((product, index) => (
                                 <motion.div
@@ -108,6 +115,15 @@ const Home = () => {
                                     <ProductCard product={product} />
                                 </motion.div>
                             ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12">
+                            <p className="text-gray-600 text-lg mb-4">
+                                Products are loading... This may take 30-60 seconds on first visit.
+                            </p>
+                            <Link to="/retail" className="btn btn-primary">
+                                View All Products
+                            </Link>
                         </div>
                     )}
 
