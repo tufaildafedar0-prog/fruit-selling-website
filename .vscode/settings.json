@@ -1,0 +1,17 @@
+{
+    "css.customData": [
+        ".vscode/css-custom-data.json"
+    ],
+    "css.lint.unknownAtRules": "ignore",
+    "scss.lint.unknownAtRules": "ignore",
+    "tailwindCSS.includeLanguages": {
+        "javascript": "javascript",
+        "javascriptreact": "javascriptreact"
+    },
+    "editor.quickSuggestions": {
+        "strings": true
+    },
+    "files.associations": {
+        "*.css": "tailwindcss"
+    }
+}
