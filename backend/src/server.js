@@ -3,6 +3,7 @@ import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
 import morgan from 'morgan';
+import compression from 'compression'; // NEW: Response compression for faster transfers
 import authRoutes from './routes/auth.routes.js';
 import productRoutes from './routes/product.routes.js';
 import orderRoutes from './routes/order.routes.js';
@@ -24,9 +25,29 @@ app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true,
 }));
+
+// NEW: Enable gzip compression for all responses (reduces transfer size)
+app.use(compression());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+
+// NEW: Set keep-alive headers to maintain connections (helps prevent cold starts)
+app.use((req, res, next) => {
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Keep-Alive', 'timeout=120');
+    next();
+});
+
+// NEW: Warmup endpoint for external ping services (prevents cold starts on free tier)
+app.get('/api/warmup', (req, res) => {
+    res.json({
+        status: 'warm',
+        timestamp: new Date().toISOString(),
+        message: 'Backend is awake and ready'
+    });
+});
 
 // Health check route
 app.get('/api/health', (req, res) => {

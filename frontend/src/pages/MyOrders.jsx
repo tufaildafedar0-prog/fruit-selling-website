@@ -5,6 +5,7 @@ import { Package, Filter, Search } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { useOrderUpdates } from '../hooks/useOrderUpdates';
+import { formatINR } from '../utils/currency'; // NEW: Import INR formatter
 
 const OrderStatusBadge = ({ status }) => {
     const statusConfig = {
@@ -204,7 +205,7 @@ const MyOrders = () => {
                                                 <span>{order.orderItems.length} item(s)</span>
                                                 <span>•</span>
                                                 <span className="font-semibold text-gray-900">
-                                                    ${parseFloat(order.total).toFixed(2)}
+                                                    {formatINR(parseFloat(order.total))}
                                                 </span>
                                             </div>
                                         </div>

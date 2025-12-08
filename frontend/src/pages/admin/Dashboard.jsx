@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import StatCard from '../../components/admin/StatCard';
 import { Link } from 'react-router-dom';
+import { formatINR } from '../../utils/currency'; // NEW: INR formatter
 
 const Dashboard = () => {
     const [loading, setLoading] = useState(true);
@@ -51,7 +52,7 @@ const Dashboard = () => {
                 <StatCard
                     icon={DollarSign}
                     label="Total Revenue"
-                    value={`$${overview?.totalRevenue?.toFixed(2) || '0.00'}`}
+                    value={formatINR(overview?.totalRevenue || 0)}
                     color="green"
                 />
                 <StatCard
@@ -86,7 +87,7 @@ const Dashboard = () => {
                             >
                                 <p className="text-sm text-gray-600">{item.type}</p>
                                 <p className="text-2xl font-bold text-gray-900">
-                                    ${item.revenue.toFixed(2)}
+                                    {formatINR(item.revenue)}
                                 </p>
                             </div>
                         ))}
@@ -143,14 +144,14 @@ const Dashboard = () => {
                                         </div>
                                         <div className="text-right">
                                             <p className="font-bold text-gray-900">
-                                                ${parseFloat(order.total).toFixed(2)}
+                                                {formatINR(parseFloat(order.total))}
                                             </p>
                                             <p
                                                 className={`text-xs font-semibold px-2 py-1 rounded-full ${order.status === 'DELIVERED'
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : order.status === 'PENDING'
-                                                            ? 'bg-yellow-100 text-yellow-700'
-                                                            : 'bg-blue-100 text-blue-700'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : order.status === 'PENDING'
+                                                        ? 'bg-yellow-100 text-yellow-700'
+                                                        : 'bg-blue-100 text-blue-700'
                                                     }`}
                                             >
                                                 {order.status}

@@ -4,6 +4,7 @@ import { Plus, Edit, Trash2, X, Save } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { formatINR } from '../utils/currency'; // NEW: INR formatter
 
 const AdminDashboard = () => {
     const [products, setProducts] = useState([]);
@@ -179,10 +180,10 @@ const AdminDashboard = () => {
                                         </td>
                                         <td className="px-6 py-4 text-gray-600">{product.category}</td>
                                         <td className="px-6 py-4 font-semibold text-gray-900">
-                                            ${parseFloat(product.retailPrice).toFixed(2)}
+                                            {formatINR(parseFloat(product.retailPrice))}
                                         </td>
                                         <td className="px-6 py-4 font-semibold text-purple-600">
-                                            ${parseFloat(product.wholesalePrice).toFixed(2)}
+                                            {formatINR(parseFloat(product.wholesalePrice))}
                                             <div className="text-xs text-gray-500">
                                                 Min: {product.minQtyWholesale}
                                             </div>
@@ -190,10 +191,10 @@ const AdminDashboard = () => {
                                         <td className="px-6 py-4">
                                             <span
                                                 className={`px-3 py-1 rounded-full text-sm font-semibold ${product.stock > 50
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : product.stock > 0
-                                                            ? 'bg-yellow-100 text-yellow-700'
-                                                            : 'bg-red-100 text-red-700'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : product.stock > 0
+                                                        ? 'bg-yellow-100 text-yellow-700'
+                                                        : 'bg-red-100 text-red-700'
                                                     }`}
                                             >
                                                 {product.stock}

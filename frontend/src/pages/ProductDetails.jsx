@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import { formatINR } from '../utils/currency'; // NEW: Import INR formatter
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -134,12 +135,12 @@ const ProductDetails = () => {
                                         setQuantity(1);
                                     }}
                                     className={`p-4 rounded-xl border-2 transition-all ${selectedType === 'RETAIL'
-                                            ? 'border-primary-500 bg-primary-50'
-                                            : 'border-gray-200 hover:border-primary-300'
+                                        ? 'border-primary-500 bg-primary-50'
+                                        : 'border-gray-200 hover:border-primary-300'
                                         }`}
                                 >
                                     <div className="text-2xl font-bold text-gray-900">
-                                        ${parseFloat(product.retailPrice).toFixed(2)}
+                                        {formatINR(parseFloat(product.retailPrice))}
                                     </div>
                                     <div className="text-sm text-gray-600 mt-1">Retail Price</div>
                                 </button>
@@ -150,12 +151,12 @@ const ProductDetails = () => {
                                         setQuantity(product.minQtyWholesale);
                                     }}
                                     className={`p-4 rounded-xl border-2 transition-all ${selectedType === 'WHOLESALE'
-                                            ? 'border-purple-500 bg-purple-50'
-                                            : 'border-gray-200 hover:border-purple-300'
+                                        ? 'border-purple-500 bg-purple-50'
+                                        : 'border-gray-200 hover:border-purple-300'
                                         }`}
                                 >
                                     <div className="text-2xl font-bold text-gray-900">
-                                        ${parseFloat(product.wholesalePrice).toFixed(2)}
+                                        {formatINR(parseFloat(product.wholesalePrice))}
                                     </div>
                                     <div className="text-sm text-gray-600 mt-1">
                                         Wholesale Price
@@ -212,17 +213,17 @@ const ProductDetails = () => {
                         <div className="card p-6 space-y-4">
                             <div className="flex items-center justify-between text-2xl font-bold">
                                 <span className="text-gray-600">Total:</span>
-                                <span className="text-primary-600">${(price * quantity).toFixed(2)}</span>
+                                <span className="text-primary-600">{formatINR(price * quantity)}</span>
                             </div>
 
                             <button
                                 onClick={handleAddToCart}
                                 disabled={product.stock === 0}
                                 className={`w-full btn ${product.stock === 0
-                                        ? 'bg-gray-300 cursor-not-allowed'
-                                        : selectedType === 'WHOLESALE'
-                                            ? 'btn-secondary'
-                                            : 'btn-primary'
+                                    ? 'bg-gray-300 cursor-not-allowed'
+                                    : selectedType === 'WHOLESALE'
+                                        ? 'btn-secondary'
+                                        : 'btn-primary'
                                     } flex items-center justify-center space-x-2 text-lg`}
                             >
                                 {selectedType === 'WHOLESALE' ? (

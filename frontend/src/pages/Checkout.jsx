@@ -344,21 +344,21 @@ const Checkout = () => {
                         <div className="space-y-3 mb-6">
                             <div className="flex justify-between text-gray-600">
                                 <span>Subtotal ({cart.length} items)</span>
-                                <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                                <span className="font-semibold">{formatINR(subtotal)}</span>
                             </div>
                             <div className="flex justify-between text-gray-600">
-                                <span>Tax (8%)</span>
-                                <span className="font-semibold">${tax.toFixed(2)}</span>
+                                <span>GST (5%)</span>
+                                <span className="font-semibold">{formatINR(tax)}</span>
                             </div>
                             <div className="flex justify-between text-gray-600">
-                                <span>Shipping</span>
+                                <span>Delivery</span>
                                 <span className="font-semibold">
-                                    {shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}
+                                    {shipping === 0 ? 'FREE' : formatINR(shipping)}
                                 </span>
                             </div>
                             <div className="border-t pt-3 flex justify-between text-2xl font-bold">
                                 <span>Total</span>
-                                <span className="text-primary-600">${total.toFixed(2)}</span>
+                                <span className="text-primary-600">{formatINR(total)}</span>
                             </div>
                         </div>
 

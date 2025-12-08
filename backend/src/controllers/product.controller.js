@@ -63,6 +63,9 @@ export const getAllProducts = async (req, res, next) => {
             prisma.product.count({ where }),
         ]);
 
+        // NEW: Add cache headers for better performance (cache for 2 minutes)
+        res.setHeader('Cache-Control', 'public, max-age=120, s-maxage=120');
+
         res.json({
             success: true,
             data: {
@@ -86,7 +89,7 @@ export const getProductById = async (req, res, next) => {
 
         const product = await prisma.product.findUnique({
             where: { id: parseInt(id) },
-            // NEW: Include variants for India-specific quantity selection
+            // NEW: Include variants
             include: {
                 variants: {
                     orderBy: { sortOrder: 'asc' }
@@ -118,15 +121,10 @@ export const createProduct = async (req, res, next) => {
             imageUrl,
             category,
             stock,
-            featured = false,
-            defaultUnit = 'kg', // NEW: Default unit for variants
-            variants = [] // NEW: Variants array
+            featured,
+            defaultUnit,
+            variants
         } = req.body;
-
-        // Calculate total stock across all variants
-        const totalStock = variants.length > 0
-            ? variants.reduce((sum, v) => sum + (v.stock || 0), 0)
-            : parseInt(stock || 0);
 
         const productData = {
             name,
@@ -136,13 +134,13 @@ export const createProduct = async (req, res, next) => {
             minQtyWholesale: parseInt(minQtyWholesale),
             imageUrl,
             category,
-            stock: totalStock,
-            featured,
-            defaultUnit
+            stock: parseInt(stock),
+            featured: featured || false,
+            defaultUnit: defaultUnit || 'kg',
         };
 
-        // NEW: Create variants if provided
-        if (variants.length > 0) {
+        // NEW: Handle variants if provided
+        if (variants && Array.isArray(variants) && variants.length > 0) {
             productData.variants = {
                 create: variants.map((variant, index) => ({
                     quantity: parseFloat(variant.quantity),
@@ -156,13 +154,15 @@ export const createProduct = async (req, res, next) => {
                     isDefault: variant.isDefault || index === 0
                 }))
             };
+
+            // Calculate total stock from variants
+            const totalStock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+            productData.stock = totalStock;
         }
 
         const product = await prisma.product.create({
             data: productData,
-            include: {
-                variants: true
-            }
+            include: { variants: { orderBy: { sortOrder: 'asc' } } }
         });
 
         res.status(201).json({
@@ -178,6 +178,7 @@ export const createProduct = async (req, res, next) => {
 export const updateProduct = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const { variants, ...otherData } = req.body;
         const updateData = {};
 
         // Only include fields that are provided
@@ -191,23 +192,54 @@ export const updateProduct = async (req, res, next) => {
             'category',
             'stock',
             'featured',
+            'defaultUnit',
         ];
 
         fields.forEach(field => {
-            if (req.body[field] !== undefined) {
+            if (otherData[field] !== undefined) {
                 if (['retailPrice', 'wholesalePrice'].includes(field)) {
-                    updateData[field] = parseFloat(req.body[field]);
+                    updateData[field] = parseFloat(otherData[field]);
                 } else if (['minQtyWholesale', 'stock'].includes(field)) {
-                    updateData[field] = parseInt(req.body[field]);
+                    updateData[field] = parseInt(otherData[field]);
                 } else {
-                    updateData[field] = req.body[field];
+                    updateData[field] = otherData[field];
                 }
             }
         });
 
+        // NEW: Handle variants update (delete and recreate for simplicity)
+        if (variants && Array.isArray(variants)) {
+            // Delete all existing variants
+            await prisma.productVariant.deleteMany({
+                where: { productId: parseInt(id) }
+            });
+
+            // Create new variants
+            if (variants.length > 0) {
+                updateData.variants = {
+                    create: variants.map((variant, index) => ({
+                        quantity: parseFloat(variant.quantity),
+                        unit: variant.unit,
+                        displayName: variant.displayName || `${variant.quantity} ${variant.unit}`,
+                        retailPrice: parseFloat(variant.retailPrice),
+                        wholesalePrice: parseFloat(variant.wholesalePrice),
+                        minQtyWholesale: parseInt(variant.minQtyWholesale || otherData.minQtyWholesale || 10),
+                        stock: parseInt(variant.stock || 0),
+                        sortOrder: variant.sortOrder !== undefined ? variant.sortOrder : index,
+                        isDefault: variant.isDefault || index === 0
+                    }))
+                };
+
+                // Calculate total stock from variants
+                const totalStock = variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+                updateData.stock = totalStock;
+            }
+        }
+
         const product = await prisma.product.update({
             where: { id: parseInt(id) },
             data: updateData,
+            include: { variants: { orderBy: { sortOrder: 'asc' } } }
         });
 
         res.json({
@@ -240,17 +272,17 @@ export const deleteProduct = async (req, res, next) => {
 export const getCategories = async (req, res, next) => {
     try {
         const categories = await prisma.product.findMany({
-            distinct: ['category'],
             select: {
                 category: true,
             },
+            distinct: ['category'],
         });
-
-        const categoryList = categories.map(c => c.category);
 
         res.json({
             success: true,
-            data: { categories: categoryList },
+            data: {
+                categories: categories.map((c) => c.category),
+            },
         });
     } catch (error) {
         next(error);

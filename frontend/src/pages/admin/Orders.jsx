@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { formatINR } from '../../utils/currency'; // NEW: INR formatter
 
 const Orders = () => {
     const [orders, setOrders] = useState([]);
@@ -206,7 +207,7 @@ const Orders = () => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className="font-bold text-gray-900">
-                                            ${parseFloat(order.total).toFixed(2)}
+                                            {formatINR(parseFloat(order.total))}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">

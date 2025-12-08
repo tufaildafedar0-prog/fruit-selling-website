@@ -5,6 +5,7 @@ import { ArrowLeft, Package, MapPin, CreditCard, Calendar, Check } from 'lucide-
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { useOrderUpdates } from '../hooks/useOrderUpdates';
+import { formatINR } from '../utils/currency'; // NEW: INR formatter
 
 const OrderDetails = () => {
     const { id } = useParams();
@@ -172,8 +173,8 @@ const OrderDetails = () => {
 
                                     {/* Icon */}
                                     <div className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full ${isCompleted ? 'bg-green-500 text-white' :
-                                            isCurrent ? 'bg-blue-500 text-white' :
-                                                'bg-gray-200 text-gray-500'
+                                        isCurrent ? 'bg-blue-500 text-white' :
+                                            'bg-gray-200 text-gray-500'
                                         }`}>
                                         <Icon className="w-6 h-6" />
                                     </div>
@@ -281,10 +282,10 @@ const OrderDetails = () => {
                                 </div>
                                 <div className="text-right">
                                     <p className="font-semibold text-lg">
-                                        ${parseFloat(item.price * item.quantity).toFixed(2)}
+                                        {formatINR(parseFloat(item.price * item.quantity))}
                                     </p>
                                     <p className="text-sm text-gray-600">
-                                        ${parseFloat(item.price).toFixed(2)} each
+                                        {formatINR(parseFloat(item.price))} each
                                     </p>
                                 </div>
                             </div>
@@ -296,7 +297,7 @@ const OrderDetails = () => {
                         <div className="flex justify-between items-center text-xl font-bold">
                             <span>Total</span>
                             <span className="text-primary-600">
-                                ${parseFloat(order.total).toFixed(2)}
+                                {formatINR(parseFloat(order.total))}
                             </span>
                         </div>
                     </div>
