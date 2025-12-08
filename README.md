@@ -6,26 +6,37 @@ A complete, production-ready full-stack e-commerce platform for fresh fruit deli
 
 ## ✨ Features
 
+### 🇮🇳 India-First Features (NEW!)
+- **₹ INR Currency** - Complete Indian Rupee pricing with proper number formatting (₹1,250)
+- **Zepto/BigBasket Style Variants** - Product quantity & unit options (500g, 1kg, 6 pcs, dozen)
+- **Performance Optimized** - 8-15s cold start, 1-3s warm (free tier optimized)
+- **GST Display** - Proper 5% GST calculation and display
+- **Variant Management** - Admin can create unlimited variants with individual pricing & stock
+- **Consistent Display** - "Product - Quantity Unit - ₹Price" format everywhere
+- **Warmup Endpoint** - `/api/warmup` for external ping services to prevent cold starts
+- **Response Compression** - 70% smaller payloads with gzip
+
 ### 🛍️ Customer Features
 - **Razorpay Payment Gateway** - Secure online payments (Cards, UPI, Net Banking, Wallets)
-- **Dual Pricing System** - Retail and wholesale options
+- **Dual Pricing System** - Retail and wholesale options with variant support
 - **User Authentication** - Email verification, password reset, profile management
 - **My Orders** - Track order status with real-time updates
 - **Smart Product Search** - Advanced filtering and pagination
-- **Shopping Cart** - Persistent cart with localStorage
-- **Secure Checkout** - Order placement with payment integration
+- **Shopping Cart** - Persistent cart with localStorage & variant selection
+- **Secure Checkout** - Order placement with payment integration (₹ INR)
 - **Order Tracking** - Real-time order status updates via WebSockets
 - **Email Notifications** - Order confirmations and status updates
 - **Contact Support** - WhatsApp integration + contact form
 
 ### 👨‍💼 Admin Features
-- **Admin Dashboard** - Real-time statistics and analytics
-- **Product Management** - Full CRUD operations with image upload
-- **Order Management** - View, update order status, payment tracking
+- **Admin Dashboard** - Real-time statistics and analytics (₹ INR)
+- **Variant Management** - Create/edit unlimited product variants (Zepto-style)
+- **Product Management** - Full CRUD operations with variant support
+- **Order Management** - View, update order status, payment tracking (₹ INR)
 - **User Management** - View and manage customer accounts
 - **Payment Tracking** - Razorpay payment status and transaction IDs
-- **Inventory Control** - Stock management and alerts
-- **Price Management** - Separate retail/wholesale pricing
+- **Inventory Control** - Stock management per variant with alerts
+- **Price Management** - Separate retail/wholesale pricing per variant (₹ INR)
 - **Category Management** - Organize products
 - **Featured Products** - Highlight special items
 - **Settings Management** - Configure site settings
@@ -43,11 +54,12 @@ A complete, production-ready full-stack e-commerce platform for fresh fruit deli
 
 ### Backend
 - **Node.js** + **Express** - RESTful API server
-- **Prisma ORM** - Type-safe database client
+- **Prisma ORM** - Type-safe database client with variant support
 - **MySQL** - Relational database
 - **JWT** - Secure authentication
 - **bcrypt** - Password hashing
-- **Razorpay SDK** - Payment gateway integration
+- **compression** - Response compression (70% smaller payloads)
+- **Razorpay SDK** - Payment gateway integration (India-first)
 - **Socket.io** - Real-time order updates
 - **Nodemailer** - Email notifications
 - **Telegram Bot API** - Admin notifications
@@ -60,6 +72,13 @@ A complete, production-ready full-stack e-commerce platform for fresh fruit deli
 - **React Router** v6 - Client-side routing
 - **Axios** - HTTP client
 - **React Hot Toast** - Notifications
+
+### India-Specific Optimizations
+- **HTTP Keep-Alive** - Persistent connections for free tier
+- **Response Caching** - 2-minute cache on product endpoints
+- **Warmup Endpoint** - `/api/warmup` for external monitoring
+- **₹ INR Formatting** - `formatINR()` utility with Indian number format
+- **Product Display Utility** - Consistent "Product - Unit - ₹Price" formatting
 
 ## 📁 Project Structure
 
@@ -267,10 +286,26 @@ Accent (Yellow):    #eab308 - Bright, attention-grabbing
 ## 📊 Database Schema
 
 ### Models
-- **User** - Authentication and roles
-- **Product** - Fruit products with dual pricing
-- **Order** - Customer orders
-- **OrderItem** - Order line items
+- **User** - Authentication and roles (customer/admin)
+- **Product** - Fruit products with dual pricing and defaultUnit
+- **ProductVariant** - Product variants (500g, 1kg, 6 pcs, etc.) with individual pricing & stock
+- **Order** - Customer orders with payment tracking
+- **OrderItem** - Order line items with variant selection
+- **Settings** - Site configuration
+
+### Key Relationships
+- Product `1:N` ProductVariant (One product has many variants)
+- Order `1:N` OrderItem (One order has many items)
+- OrderItem `N:1` Product (Many items reference one product)
+- OrderItem `N:1` ProductVariant (Many items reference one variant)
+
+### India-First Schema Features
+- **defaultUnit** - Product's default measurement unit (kg, g, pcs, dozen, etc.)
+- **displayName** - Auto-generated variant display ("500 g", "1 kg")
+- **retailPrice/wholesalePrice** - Per-variant pricing in ₹ INR
+- **stock** - Individual stock tracking per variant
+- **sortOrder** - Display order for variants
+- **isDefault** - Default variant selection
 
 ## 🧪 Testing
 
