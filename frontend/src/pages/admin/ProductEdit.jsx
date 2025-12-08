@@ -43,21 +43,27 @@ const ProductEditWithVariants = () => {
             const response = await api.get(`/products/${id}`);
             const product = response.data.data.product;
             setFormData({
-                name: product.name,
-                description: product.description,
-                retailPrice: product.retailPrice,
-                wholesalePrice: product.wholesalePrice,
-                minQtyWholesale: product.minQtyWholesale,
-                imageUrl: product.imageUrl,
-                category: product.category,
-                stock: product.stock,
-                featured: product.featured,
+                name: product.name || '',
+                description: product.description || '',
+                retailPrice: String(product.retailPrice || ''),
+                wholesalePrice: String(product.wholesalePrice || ''),
+                minQtyWholesale: String(product.minQtyWholesale || '10'),
+                imageUrl: product.imageUrl || '',
+                category: product.category || '',
+                stock: String(product.stock || ''),
+                featured: product.featured || false,
                 defaultUnit: product.defaultUnit || 'kg',
             });
 
-            // Load variants if they exist
+            // Load variants if they exist (convert numbers to strings for form)
             if (product.variants && product.variants.length > 0) {
-                setVariants(product.variants);
+                setVariants(product.variants.map(v => ({
+                    ...v,
+                    quantity: String(v.quantity),
+                    retailPrice: String(v.retailPrice),
+                    wholesalePrice: String(v.wholesalePrice),
+                    stock: String(v.stock || 0)
+                })));
             }
         } catch (error) {
             console.error('Error fetching product:', error);
