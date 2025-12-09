@@ -30,8 +30,11 @@ class SocketService {
                     // Allow requests with no origin (like mobile apps or curl)
                     if (!origin) return callback(null, true);
 
-                    // Check if origin is in allowed list or matches GitHub Pages
-                    if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+                    // Check if origin is in allowed list, matches GitHub Pages, or any Vercel deployment
+                    const isAllowed = allowedOrigins.some(allowed => origin.startsWith(allowed)) ||
+                        origin.endsWith('.vercel.app');  // Allow all Vercel deployments
+
+                    if (isAllowed) {
                         callback(null, true);
                     } else {
                         callback(new Error('Not allowed by CORS'));
