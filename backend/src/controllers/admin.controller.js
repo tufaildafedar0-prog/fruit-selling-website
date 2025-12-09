@@ -6,6 +6,7 @@ import prisma from '../config/database.js';
  */
 export const cleanupProducts = async (req, res, next) => {
     try {
+        // EXACT names to keep (case-insensitive exact match)
         const KEEP_PRODUCTS = ['watermelon', 'banana', 'apple', 'grapes'];
 
         // Get all products
@@ -13,17 +14,17 @@ export const cleanupProducts = async (req, res, next) => {
             select: { id: true, name: true }
         });
 
-        // Find products to delete
-        const productsToDelete = allProducts.filter(product =>
-            !KEEP_PRODUCTS.some(keepName =>
-                product.name.toLowerCase().includes(keepName.toLowerCase())
+        // Find products to KEEP - exact match only
+        const productsToKeep = allProducts.filter(product =>
+            KEEP_PRODUCTS.some(keepName =>
+                product.name.toLowerCase().trim() === keepName.toLowerCase().trim()
             )
         );
 
-        // Find products to keep
-        const productsToKeep = allProducts.filter(product =>
-            KEEP_PRODUCTS.some(keepName =>
-                product.name.toLowerCase().includes(keepName.toLowerCase())
+        // Everything else gets deleted
+        const productsToDelete = allProducts.filter(product =>
+            !KEEP_PRODUCTS.some(keepName =>
+                product.name.toLowerCase().trim() === keepName.toLowerCase().trim()
             )
         );
 
@@ -42,11 +43,12 @@ export const cleanupProducts = async (req, res, next) => {
 
         res.json({
             success: true,
-            message: 'Product cleanup complete',
+            message: `Cleanup complete - kept only ${productsToKeep.length} products`,
             data: {
                 totalBefore: allProducts.length,
                 deleted: deletedCount,
-                deletedProducts: productsToDelete.map(p => p.name),
+                deletedProducts: productsToDelete.map(p => p.name).slice(0, 20), // Show first 20
+                deletedCount: deletedCount,
                 remaining: productsToKeep.length,
                 remainingProducts: productsToKeep.map(p => p.name)
             }
