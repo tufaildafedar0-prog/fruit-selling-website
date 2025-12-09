@@ -22,7 +22,6 @@ import {
     exportOrders,
 } from '../controllers/adminOrders.controller.js';
 import { updateOrderStatus } from '../controllers/order.controller.js';
-import { reseedIndiaProducts } from '../controllers/admin.controller.js';
 
 const router = express.Router();
 
@@ -49,8 +48,5 @@ router.get('/orders', getAllOrders);
 router.get('/orders/export', exportOrders);
 router.get('/orders/:id', getOrderById);
 router.patch('/orders/:id/status', updateOrderStatus);
-
-// Database management
-router.post('/reseed-india', reseedIndiaProducts);
 
 export default router;
