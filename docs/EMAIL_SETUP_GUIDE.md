@@ -2,94 +2,91 @@
 
 ## Overview
 
-Fruitify uses email notifications to keep customers informed about their orders. Each client deployment needs to configure their own email service using Gmail SMTP (100% FREE).
+Fruitify uses email notifications to keep customers informed about their orders. This guide covers setup for **SendGrid HTTP API** (recommended for free hosting) and Gmail SMTP (for self-hosted deployments).
 
 ---
 
-## Gmail SMTP Setup (Recommended - FREE)
+## ⭐ SendGrid HTTP API (RECOMMENDED - Works Everywhere!)
 
-### Prerequisites
-- Gmail account (or Google Workspace account)
-- 2-Factor Authentication enabled
+**Why SendGrid HTTP API?**
+- ✅ Works on ALL free hosting platforms (Railway, Render, Vercel serverless, etc.)
+- ✅ No SMTP port restrictions
+- ✅ 100 emails/day FREE forever
+- ✅ More reliable than SMTP
+- ✅ Modern, professional approach
+- ✅ **This is what the demo uses!**
 
-### Step 1: Enable 2-Factor Authentication
-1. Go to https://myaccount.google.com/security
-2. Enable **2-Step Verification** if not already enabled
-3. Follow the setup wizard
+### Step 1: Create SendGrid Account
 
-### Step 2: Generate App Password
-1. Go to https://myaccount.google.com/apppasswords
-2. Select app: **Mail**
-3. Select device: **Other (Custom name)** → Type: `Fruitify Backend`
-4. Click **Generate**
-5. **Copy the 16-character password** (format: `xxxx xxxx xxxx xxxx`)
-6. **Remove all spaces**: `xxxxxxxxxxxxxxxx`
-7. **Save this password securely** - you'll need it once for deployment
-
-### Step 3: Configure Environment Variables
-
-In your backend hosting platform (Render/Railway/etc.), set these environment variables:
-
-```bash
-# Email Service Configuration
-ENABLE_EMAIL_NOTIFICATIONS=true
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_SECURE=true
-EMAIL_USER=your-business-email@gmail.com
-EMAIL_PASS=xxxxxxxxxxxxxxxx  # 16-char app password from Step 2
-EMAIL_FROM="Your Business Name <your-business-email@gmail.com>"
-```
-
-**Important Notes:**
-- `EMAIL_PASS` is the **app password**, NOT your regular Gmail password
-- Use port `465` with `SMTP_SECURE=true` for best compatibility
-- `EMAIL_FROM` format: `"Display Name <email@domain.com>"`
-
-### Step 4: Redeploy Backend
-
-After setting environment variables, redeploy your backend service. The logs should show:
-
-```
-✅ Email service initialized
-📧 SMTP Host: smtp.gmail.com
-📧 SMTP Port: 465
-📧 From: Your Business Name <your-business-email@gmail.com>
-```
-
----
-
-## Alternative: SendGrid (If Gmail Blocked)
-
-Some hosting platforms block SMTP connections. If Gmail doesn't work, use SendGrid (100 emails/day FREE).
-
-### Step 1: Sign Up for SendGrid
 1. Visit: https://signup.sendgrid.com/
-2. Sign up for free account
-3. Verify your email
+2. Sign up for **free account**
+3. Verify your email address
 
-### Step 2: Create API Key
+### Step 2: Verify Sender Email
+
+**CRITICAL:** SendGrid requires sender verification before sending emails.
+
+1. Go to: https://app.sendgrid.com/settings/sender_auth/senders
+2. Click **"Create New Sender"**
+3. Fill in your details:
+   - **From Email Address:** `your-business@yourdomain.com`
+   - **From Name:** `Your Business Name`
+   - **Reply To:** Same as From Email
+   - **Address, City, Country:** Your business location
+4. Click **"Create"**
+5. **Check your email inbox** for verification email from SendGrid
+6. **Click the verification link** in the email
+7. Return to SendGrid dashboard
+8. **Verify the sender shows a green checkmark** ✅
+
+**Important:** You CANNOT send emails until sender is verified!
+
+### Step 3: Create API Key
+
 1. Go to: https://app.sendgrid.com/settings/api_keys
-2. Click **Create API Key**
-3. Name: `Fruitify Backend`
-4. Permissions: **Full Access**
-5. Copy the API key (starts with `SG.`)
-
-### Step 3: Verify Sender Email
-1. Go to: https://app.sendgrid.com/settings/sender_auth
-2. Add and verify your sender email
+2. Click **"Create API Key"**
+3. **Name:** `Fruitify Backend`
+4. **Permissions:** Select **"Full Access"** (or at minimum "Mail Send - Full Access")
+5. Click **"Create & View"**
+6. **COPY THE API KEY** (starts with `SG.`) - You won't see it again!
+7. Save it securely (you'll add it to environment variables)
 
 ### Step 4: Configure Environment Variables
 
+In your backend hosting platform (Railway/Render/Vercel/etc.), set these environment variables:
+
 ```bash
+# Email Service - SendGrid HTTP API
 ENABLE_EMAIL_NOTIFICATIONS=true
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_SECURE=false
-EMAIL_USER=apikey  # Literally the word "apikey"
-EMAIL_PASS=SG.xxxxxxxxxxxxxxxxxxxxx  # Your SendGrid API key
-EMAIL_FROM="Your Business <verified-email@yourdomain.com>"
+SENDGRID_API_KEY=SG.xxxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Your API key from Step 3
+EMAIL_FROM=your-verified-sender@yourdomain.com      # Must match verified sender from Step 2
 ```
+
+**CRITICAL:**
+- `EMAIL_FROM` must be EXACTLY the email you verified in Step 2
+- Just the email address, no quotes, no display name
+- Example: `orders@yourbusiness.com` NOT `"Business Name <orders@yourbusiness.com>"`
+
+### Step 5: Deploy and Test
+
+1. Deploy/redeploy your backend
+2. Check logs for: `✅ Email service initialized (SendGrid HTTP API)`
+3. Test by registering a new user
+4. **Check email inbox (and spam folder!)**
+
+**First email from SendGrid often goes to spam** - click "Not spam" to train filters.
+
+---
+
+## Alternative: Gmail SMTP (For Self-Hosted Servers Only)
+
+**⚠️ WARNING:** Gmail SMTP does NOT work on most free hosting platforms (Railway, Render, Vercel) because they block SMTP ports. Only use this if you're deploying on a VPS or paid hosting that allows SMTP.
+
+**Why Gmail SMTP doesn't work on free hosting:**
+- Free hosting blocks port 587 (SMTP)
+- Free hosting blocks port 465 (SMTPS)  
+- Railway, Render, Heroku all block SMTP on free tiers
+- Use SendGrid HTTP API instead!
 
 ---
 
@@ -215,10 +212,15 @@ If you encounter issues:
 
 ## Quick Reference
 
-| Setting | Gmail | SendGrid |
-|---------|-------|----------|
-| SMTP_HOST | smtp.gmail.com | smtp.sendgrid.net |
-| SMTP_PORT | 465 | 587 |
-| SMTP_SECURE | true | false |
-| EMAIL_USER | your@gmail.com | apikey |
-| EMAIL_PASS | App password (16 chars) | API key (SG.*) |
+| Setting | SendGrid HTTP API ⭐ | Gmail SMTP | SendGrid SMTP |
+|---------|---------------------|------------|---------------|
+| Works on free hosting? | ✅ YES | ❌ NO | ❌ NO |
+| Environment Variable | `SENDGRID_API_KEY` | - | - |
+| SMTP_HOST | - | smtp.gmail.com | smtp.sendgrid.net |
+| SMTP_PORT | - | 465 | 587 |
+| SMTP_SECURE | - | true | false |
+| EMAIL_USER | - | your@gmail.com | apikey |
+| EMAIL_PASS | - | App password | API key |
+| EMAIL_FROM | verified@domain.com | "Name <email>" | "Name <email>" |
+| Free tier limits | 100 emails/day | 500/day | 100/day |
+| **Recommended** | ✅ **YES** | Only for VPS | No |
