@@ -1,6 +1,6 @@
 import express from 'express';
 import { testEmail, testTelegram, getServiceStatus } from '../controllers/test.controller.js';
-import { cleanupProducts } from '../controllers/admin.controller.js';
+import { deleteAllProducts, addFourProducts } from '../controllers/admin.controller.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -12,7 +12,8 @@ router.get('/status', getServiceStatus);
 router.post('/email', authenticate, authorize('ADMIN'), testEmail);
 router.post('/telegram', authenticate, authorize('ADMIN'), testTelegram);
 
-// Cleanup products (admin only - removes all except watermelon, banana, apple, grapes)
-router.post('/cleanup-products', authenticate, authorize('ADMIN'), cleanupProducts);
+// Emergency product reset (admin only)
+router.post('/delete-all-products', authenticate, authorize('ADMIN'), deleteAllProducts);
+router.post('/add-four-products', authenticate, authorize('ADMIN'), addFourProducts);
 
 export default router;

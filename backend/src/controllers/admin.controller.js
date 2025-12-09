@@ -1,56 +1,89 @@
 import prisma from '../config/database.js';
 
 /**
- * ADMIN ONLY - Clean up unwanted products
- * Keeps only: watermelon, banana, apple, grapes
+ * DELETE ALL PRODUCTS - Nuclear option
  */
-export const cleanupProducts = async (req, res, next) => {
+export const deleteAllProducts = async (req, res, next) => {
     try {
-        // EXACT names to keep (case-insensitive exact match)
-        const KEEP_PRODUCTS = ['watermelon', 'banana', 'apple', 'grapes'];
-
-        // Get all products
-        const allProducts = await prisma.product.findMany({
-            select: { id: true, name: true }
-        });
-
-        // Find products to KEEP - exact match only
-        const productsToKeep = allProducts.filter(product =>
-            KEEP_PRODUCTS.some(keepName =>
-                product.name.toLowerCase().trim() === keepName.toLowerCase().trim()
-            )
-        );
-
-        // Everything else gets deleted
-        const productsToDelete = allProducts.filter(product =>
-            !KEEP_PRODUCTS.some(keepName =>
-                product.name.toLowerCase().trim() === keepName.toLowerCase().trim()
-            )
-        );
-
-        // Delete unwanted products
-        let deletedCount = 0;
-        if (productsToDelete.length > 0) {
-            const result = await prisma.product.deleteMany({
-                where: {
-                    id: {
-                        in: productsToDelete.map(p => p.id)
-                    }
-                }
-            });
-            deletedCount = result.count;
-        }
+        const result = await prisma.product.deleteMany({});
 
         res.json({
             success: true,
-            message: `Cleanup complete - kept only ${productsToKeep.length} products`,
+            message: `Deleted ALL ${result.count} products`,
+            data: { deletedCount: result.count }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Add ONLY 4 specific products
+ */
+export const addFourProducts = async (req, res, next) => {
+    try {
+        const products = [
+            {
+                name: 'Watermelon',
+                description: 'Fresh and juicy watermelon, perfect for hot summer days. Sweet and refreshing.',
+                category: 'FRUIT',
+                imageUrl: 'https://images.unsplash.com/photo-1587049352846-4a222e784fa4?w=500',
+                retailPrice: 40.00,
+                wholesalePrice: 30.00,
+                wholesaleMinQty: 10,
+                unit: 'kg',
+                stock: 100,
+                featured: true
+            },
+            {
+                name: 'Banana',
+                description: 'Fresh yellow bananas, rich in potassium. Great for energy and health.',
+                category: 'FRUIT',
+                imageUrl: 'https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=500',
+                retailPrice: 50.00,
+                wholesalePrice: 40.00,
+                wholesaleMinQty: 12,
+                unit: 'dozen',
+                stock: 150,
+                featured: true
+            },
+            {
+                name: 'Apple',
+                description: 'Crisp and sweet apples, perfect for snacking. Rich in fiber and vitamins.',
+                category: 'FRUIT',
+                imageUrl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500',
+                retailPrice: 120.00,
+                wholesalePrice: 100.00,
+                wholesaleMinQty: 10,
+                unit: 'kg',
+                stock: 80,
+                featured: true
+            },
+            {
+                name: 'Grapes',
+                description: 'Sweet seedless grapes, fresh and juicy. Perfect for snacking or desserts.',
+                category: 'FRUIT',
+                imageUrl: 'https://images.unsplash.com/photo-1599819177877-ed2c9f0d1e13?w=500',
+                retailPrice: 80.00,
+                wholesalePrice: 65.00,
+                wholesaleMinQty: 10,
+                unit: 'kg',
+                stock: 60,
+                featured: true
+            }
+        ];
+
+        // Create all 4 products
+        const created = await prisma.product.createMany({
+            data: products
+        });
+
+        res.json({
+            success: true,
+            message: `Added ${created.count} products successfully`,
             data: {
-                totalBefore: allProducts.length,
-                deleted: deletedCount,
-                deletedProducts: productsToDelete.map(p => p.name).slice(0, 20), // Show first 20
-                deletedCount: deletedCount,
-                remaining: productsToKeep.length,
-                remainingProducts: productsToKeep.map(p => p.name)
+                count: created.count,
+                products: products.map(p => p.name)
             }
         });
     } catch (error) {
