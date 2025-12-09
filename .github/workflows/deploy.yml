@@ -39,7 +39,7 @@ jobs:
       
       - name: Build
         env:
-          VITE_API_URL: https://fruitify-backend-2sbr.onrender.com
+          VITE_API_URL: https://fruitify-backend-2sbr.onrender.com/api
         run: |
           cd frontend
           npm run build
