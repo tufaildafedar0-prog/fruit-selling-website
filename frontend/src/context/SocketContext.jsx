@@ -28,8 +28,9 @@ export const SocketProvider = ({ children }) => {
             return;
         }
 
-        // Create socket connection
-        const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+        // Create socket connection (Socket.IO is at root, not /api)
+        const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api', '');
+        const newSocket = io(SOCKET_URL, {
             auth: {
                 token: token,
             },
