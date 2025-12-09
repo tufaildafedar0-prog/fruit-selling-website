@@ -83,6 +83,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/public', settingsRoutes);
 app.use('/api/payments', paymentRoutes); // ADDED: Payment routes for Razorpay
 
+// Diagnostic test routes (admin only)
+import testRoutes from './routes/test.routes.js';
+app.use('/api/test', testRoutes);
+
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
