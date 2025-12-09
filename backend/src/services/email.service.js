@@ -1,47 +1,43 @@
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 /**
  * Email Notification Service
- * Uses Gmail SMTP for sending emails (FREE for personal use)
+ * Uses SendGrid HTTP API (NOT SMTP) - works on ALL hosting platforms!
  * 
  * ⚠️ SECURITY: All credentials loaded from .env - NO hardcoded secrets
  * Required .env variables:
- * - EMAIL_USER (Gmail address)
- * - EMAIL_PASS (Gmail app-specific password)
- * - EMAIL_FROM (Display name and email)
+ * - SENDGRID_API_KEY (Your SendGrid API key)
+ * - EMAIL_FROM (Verified sender email)
  * - ENABLE_EMAIL_NOTIFICATIONS (true/false)
  * 
- * Setup Guide: https://support.google.com/accounts/answer/185833
+ * Setup Guide: https://docs.sendgrid.com/for-developers/sending-email/api-getting-started
  */
 
 class EmailService {
     constructor() {
         this.enabled = process.env.ENABLE_EMAIL_NOTIFICATIONS === 'true';
-        this.transporter = null;
 
         if (this.enabled) {
             // Validate required environment variables
-            if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-                console.error('❌ Email service: Missing EMAIL_USER or EMAIL_PASS in .env');
+            if (!process.env.SENDGRID_API_KEY) {
+                console.error('❌ Email service: Missing SENDGRID_API_KEY in .env');
                 this.enabled = false;
                 return;
             }
 
-            this.transporter = nodemailer.createTransport({
-                host: process.env.SMTP_HOST || 'smtp.gmail.com',
-                port: parseInt(process.env.SMTP_PORT) || 587,
-                secure: process.env.SMTP_SECURE === 'true',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS,
-                },
-            });
+            if (!process.env.EMAIL_FROM) {
+                console.error('❌ Email service: Missing EMAIL_FROM in .env');
+                this.enabled = false;
+                return;
+            }
+
+            // Initialize SendGrid with API key
+            sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
             // Log initialization WITHOUT credentials
-            console.log('✅ Email service initialized');
-            console.log(`📧 SMTP Host: ${process.env.SMTP_HOST || 'smtp.gmail.com'}`);
-            console.log(`📧 SMTP Port: ${process.env.SMTP_PORT || 587}`);
-            console.log(`📧 From: ${process.env.EMAIL_FROM || 'Fruitify'}`);
+            console.log('✅ Email service initialized (SendGrid HTTP API)');
+            console.log(`📧 From: ${process.env.EMAIL_FROM}`);
+            console.log('📧 Using SendGrid HTTP API (works on all platforms!)');
         } else {
             console.log('⚠️  Email service disabled (set ENABLE_EMAIL_NOTIFICATIONS=true in .env)');
         }
@@ -54,19 +50,27 @@ class EmailService {
         }
 
         try {
-            const info = await this.transporter.sendMail({
-                from: process.env.EMAIL_FROM || 'Fruitify <noreply@fruitify.com>',
+            const msg = {
                 to,
+                from: process.env.EMAIL_FROM,
                 subject,
                 text,
                 html,
-            });
+            };
 
-            console.log(`✅ Email sent: ${info.messageId} to ${to}`);
-            return { success: true, messageId: info.messageId };
+            const response = await sgMail.send(msg);
+
+            console.log(`✅ Email sent via SendGrid: "${subject}" to ${to}`);
+            return {
+                success: true,
+                messageId: response[0].headers['x-message-id']
+            };
         } catch (error) {
-            console.error(`❌ Email send failed: ${error.message}`);
-            return { success: false, error: error.message };
+            console.error(`❌ Email send failed:`, error.response?.body || error.message);
+            return {
+                success: false,
+                error: error.response?.body?.errors?.[0]?.message || error.message
+            };
         }
     }
 
