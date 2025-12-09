@@ -7,10 +7,27 @@
     <title>Fruitify - Fresh Fruits Delivered</title>
     <script>
         // GitHub Pages SPA redirect
-        // This handles direct URLs like /admin, /retail, etc.
-        sessionStorage.redirect = location.href;
+        // Redirect to index.html with path as query parameter
+        var pathSegmentsToKeep = 1; // Keep "fruit-selling-website" segment
+
+        var location = window.location;
+        var pathSegments = location.pathname.split('/').slice(0, pathSegmentsToKeep + 1).join('/');
+
+        // Encode the path after the base path
+        var redirect = '/?p=' + encodeURIComponent(
+            location.pathname.slice(pathSegments.length)
+        );
+
+        if (location.search) {
+            redirect += '&q=' + encodeURIComponent(location.search.slice(1));
+        }
+
+        if (location.hash) {
+            redirect += '&h=' + encodeURIComponent(location.hash.slice(1));
+        }
+
+        location.replace(pathSegments + redirect);
     </script>
-    <meta http-equiv="refresh" content="0;URL='/fruit-selling-website/'">
 </head>
 
 <body>
