@@ -30,8 +30,8 @@ export const addFourProducts = async (req, res, next) => {
                 imageUrl: 'https://images.unsplash.com/photo-1587049352846-4a222e784fa4?w=500',
                 retailPrice: 40.00,
                 wholesalePrice: 30.00,
-                wholesaleMinQty: 10,
-                unit: 'kg',
+                minQtyWholesale: 10,
+                defaultUnit: 'kg',
                 stock: 100,
                 featured: true
             },
@@ -42,8 +42,8 @@ export const addFourProducts = async (req, res, next) => {
                 imageUrl: 'https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=500',
                 retailPrice: 50.00,
                 wholesalePrice: 40.00,
-                wholesaleMinQty: 12,
-                unit: 'dozen',
+                minQtyWholesale: 12,
+                defaultUnit: 'dozen',
                 stock: 150,
                 featured: true
             },
@@ -54,8 +54,8 @@ export const addFourProducts = async (req, res, next) => {
                 imageUrl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500',
                 retailPrice: 120.00,
                 wholesalePrice: 100.00,
-                wholesaleMinQty: 10,
-                unit: 'kg',
+                minQtyWholesale: 10,
+                defaultUnit: 'kg',
                 stock: 80,
                 featured: true
             },
@@ -66,8 +66,8 @@ export const addFourProducts = async (req, res, next) => {
                 imageUrl: 'https://images.unsplash.com/photo-1599819177877-ed2c9f0d1e13?w=500',
                 retailPrice: 80.00,
                 wholesalePrice: 65.00,
-                wholesaleMinQty: 10,
-                unit: 'kg',
+                minQtyWholesale: 10,
+                defaultUnit: 'kg',
                 stock: 60,
                 featured: true
             }
