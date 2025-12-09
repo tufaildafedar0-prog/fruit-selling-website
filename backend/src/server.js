@@ -10,6 +10,7 @@ import orderRoutes from './routes/order.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 import paymentRoutes from './routes/payment.routes.js'; // ADDED: Payment routes for Razorpay
+import testRoutes from './routes/test.routes.js'; // Diagnostic test routes
 import { errorHandler } from './middleware/errorHandler.js';
 import socketService from './services/socket.service.js';
 
@@ -82,10 +83,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/public', settingsRoutes);
 app.use('/api/payments', paymentRoutes); // ADDED: Payment routes for Razorpay
+app.use('/api/test', testRoutes); // Diagnostic test routes (admin only)
 
-// Diagnostic test routes (admin only)
-import testRoutes from './routes/test.routes.js';
-app.use('/api/test', testRoutes);
 
 // 404 handler
 app.use((req, res) => {
