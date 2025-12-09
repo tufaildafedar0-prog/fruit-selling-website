@@ -33,12 +33,15 @@ const Products = () => {
         if (!window.confirm('Are you sure you want to delete this product?')) return;
 
         try {
+            setLoading(true); // Show loading during deletion
             await api.delete(`/products/${id}`);
             toast.success('Product deleted successfully');
-            fetchProducts();
+            // Refresh the products list
+            await fetchProducts();
         } catch (error) {
             console.error('Error deleting product:', error);
-            toast.error('Failed to delete product');
+            toast.error(error.response?.data?.message || 'Failed to delete product');
+            setLoading(false); // Reset loading on error
         }
     };
 
