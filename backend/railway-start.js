@@ -36,9 +36,28 @@ async function startup() {
         'Setting up database schema'
     );
 
-    // Step 3: Seed database (only if db push succeeded)
+    // Step 3: Check if database already has data (skip seed if data exists)
     if (dbPushSuccess) {
-        await runCommand('npx prisma db seed', 'Seeding database with initial data');
+        console.log('\n🔍 Checking if database needs seeding...');
+        try {
+            const { execSync } = await import('child_process');
+            const result = execSync('npx prisma db execute --stdin', {
+                input: 'SELECT COUNT(*) FROM "Product";',
+                encoding: 'utf8'
+            });
+
+            const hasProducts = result && !result.includes('0');
+
+            if (hasProducts) {
+                console.log('✅ Database already has products - skipping seed');
+            } else {
+                console.log('📦 Empty database detected - running seed...');
+                await runCommand('npx prisma db seed', 'Seeding database with initial data');
+            }
+        } catch (error) {
+            console.log('⚠️  Could not check product count, skipping seed to be safe');
+            console.log('   (Run seed manually if needed: npx prisma db seed)');
+        }
     }
 
     // Step 4: Start the server
