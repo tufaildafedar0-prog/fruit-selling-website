@@ -20,7 +20,8 @@ class SocketService {
         const allowedOrigins = [
             process.env.FRONTEND_URL,
             'http://localhost:5173',
-            'https://tufaildafedar0-prog.github.io'
+            'https://tufaildafedar0-prog.github.io',
+            'https://fruit-selling-website-zeta.vercel.app'  // Vercel deployment
         ].filter(Boolean); // Remove undefined values
 
         this.io = new Server(httpServer, {
