@@ -19,6 +19,7 @@ class SocketService {
         // Allow multiple origins for CORS
         const allowedOrigins = [
             process.env.FRONTEND_URL,
+            process.env.RAILWAY_STATIC_URL,
             'http://localhost:5173',
             'https://tufaildafedar0-prog.github.io',
             'https://fruit-selling-website-zeta.vercel.app'  // Vercel deployment
