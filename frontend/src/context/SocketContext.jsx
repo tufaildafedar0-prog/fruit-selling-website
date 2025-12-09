@@ -56,7 +56,11 @@ export const SocketProvider = ({ children }) => {
         });
 
         newSocket.on('connect_error', (error) => {
-            console.error('Socket connection error:', error.message);
+            // Only log Socket.IO errors if user is actually using real-time features
+            // Silent fail for logged-out users (they don't need Socket.IO)
+            if (user && token) {
+                console.error('Socket connection error:', error.message);
+            }
             setIsConnected(false);
         });
 

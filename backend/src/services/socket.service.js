@@ -16,9 +16,26 @@ class SocketService {
      * @param {http.Server} httpServer - Express HTTP server
      */
     initialize(httpServer) {
+        // Allow multiple origins for CORS
+        const allowedOrigins = [
+            process.env.FRONTEND_URL,
+            'http://localhost:5173',
+            'https://tufaildafedar0-prog.github.io'
+        ].filter(Boolean); // Remove undefined values
+
         this.io = new Server(httpServer, {
             cors: {
-                origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+                origin: (origin, callback) => {
+                    // Allow requests with no origin (like mobile apps or curl)
+                    if (!origin) return callback(null, true);
+
+                    // Check if origin is in allowed list or matches GitHub Pages
+                    if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+                        callback(null, true);
+                    } else {
+                        callback(new Error('Not allowed by CORS'));
+                    }
+                },
                 credentials: true,
             },
             pingTimeout: 60000,
