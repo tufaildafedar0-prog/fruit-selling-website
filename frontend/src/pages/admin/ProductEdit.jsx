@@ -6,6 +6,8 @@ import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
+// Force fresh build - Updated 2025-12-09 17:17 UTC
+
 const ProductEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -35,7 +37,9 @@ const ProductEdit = () => {
         setLoading(true);
         try {
             const response = await api.get(`/products/${id}`);
-            const product = response.data.data;
+            console.log('API Response:', response.data);
+            const product = response.data.data?.product || response.data.data;
+            console.log('Product data:', product);
             setFormData({
                 name: product.name || '',
                 description: product.description || '',
