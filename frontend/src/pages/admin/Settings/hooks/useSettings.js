@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '../../../utils/api';
 import toast from 'react-hot-toast';
+import { useGlobalSettings } from '../../../../context/SettingsContext';
 
 /**
- * Custom hook for managing website settings
+ * Custom hook for managing website settings in admin panel
  * Centralizes all settings state and API logic
+ * Updates global context on save for instant site-wide updates
  */
 export const useSettings = () => {
+    const { updateSettings: updateGlobalSettings } = useGlobalSettings();
     const [settings, setSettings] = useState({
         siteName: '',
         logoUrl: '',
@@ -59,7 +62,11 @@ export const useSettings = () => {
         setSaving(true);
         try {
             await api.put('/admin/settings', settings);
-            toast.success('Settings updated successfully');
+
+            // ⭐ UPDATE GLOBAL CONTEXT - Instant site-wide update!
+            updateGlobalSettings(settings);
+
+            toast.success('Settings updated site-wide!');
             setErrors({});
         } catch (error) {
             console.error('Error updating settings:', error);

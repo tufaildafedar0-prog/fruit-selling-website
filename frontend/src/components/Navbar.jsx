@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { ShoppingCart, Menu, X, User, LogOut } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useGlobalSettings } from '../context/SettingsContext';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { getCartCount } = useCart();
     const { user, logout, isAdmin } = useAuth();
+    const { settings } = useGlobalSettings();
     const cartCount = getCartCount();
 
     const navLinks = [
@@ -37,7 +39,7 @@ const Navbar = () => {
                             🍎
                         </motion.div>
                         <span className="text-2xl font-display font-bold gradient-text">
-                            Fruitify
+                            {settings.siteName || 'Fruitify'}
                         </span>
                     </Link>
 

@@ -1,40 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import api from '../utils/api';
+import { useGlobalSettings } from '../context/SettingsContext';
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
-    const [settings, setSettings] = useState({
-        siteName: 'Fruitify',
-        footerText: `© ${currentYear} Fruitify. All rights reserved. Made with ❤️ for fresh fruit lovers.`,
-        contactEmail: 'hello@fruitify.com',
-        contactPhone: '+1 (555) 123-4567',
-        address: '123 Fruit Street, Fresh City, FC 12345',
-        facebookUrl: 'https://facebook.com',
-        twitterUrl: 'https://twitter.com',
-        instagramUrl: 'https://instagram.com',
-    });
-
-    useEffect(() => {
-        // Fetch public settings (non-admin endpoint)
-        const fetchSettings = async () => {
-            try {
-                const response = await api.get('/public/settings');
-                if (response.data.success && response.data.data) {
-                    setSettings(prev => ({
-                        ...prev,
-                        ...response.data.data
-                    }));
-                }
-            } catch (error) {
-                // Silently fail - use defaults if API fails
-                console.error('Failed to load footer settings:', error);
-            }
-        };
-
-        fetchSettings();
-    }, []);
+    const { settings } = useGlobalSettings();
 
     return (
         <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
