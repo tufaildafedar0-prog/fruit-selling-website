@@ -22,6 +22,11 @@ import {
     exportOrders,
 } from '../controllers/adminOrders.controller.js';
 import { updateOrderStatus } from '../controllers/order.controller.js';
+import {
+    testTelegram,
+    getTelegramLogs,
+    getTelegramStatus
+} from '../controllers/adminTelegram.controller.js';
 
 const router = express.Router();
 
@@ -48,5 +53,10 @@ router.get('/orders', getAllOrders);
 router.get('/orders/export', exportOrders);
 router.get('/orders/:id', getOrderById);
 router.patch('/orders/:id/status', updateOrderStatus);
+
+// Telegram management routes (NEW)
+router.get('/test-telegram', testTelegram);
+router.get('/telegram-logs', getTelegramLogs);
+router.get('/telegram-status', getTelegramStatus);
 
 export default router;

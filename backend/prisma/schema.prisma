@@ -124,9 +124,10 @@ model Order {
   razorpaySignature  String?
   paidAt             DateTime?
   
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  orderItems OrderItem[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  orderItems   OrderItem[]
+  telegramLogs TelegramLog[] // NEW: Relation to telegram logs
 
   @@map("orders")
 }
@@ -195,4 +196,23 @@ model WebsiteSettings {
   updatedAt       DateTime @updatedAt
 
   @@map("website_settings")
+}
+
+// NEW: Telegram notification logs
+model TelegramLog {
+  id         Int      @id @default(autoincrement())
+  orderId    Int?
+  order      Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  type       String   // "order" | "test" | "status_update"
+  payload    String   @db.Text
+  attempts   Int      @default(1)
+  lastError  String?  @db.Text
+  status     String   // "success" | "failed" | "pending"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("telegram_logs")
 }
