@@ -20,7 +20,7 @@ const Footer = () => {
         // Fetch public settings (non-admin endpoint)
         const fetchSettings = async () => {
             try {
-                const response = await api.get('/settings');
+                const response = await api.get('/public/settings');
                 if (response.data.success && response.data.data) {
                     setSettings(prev => ({
                         ...prev,
