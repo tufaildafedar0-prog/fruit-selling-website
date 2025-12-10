@@ -155,7 +155,7 @@ export const createOrder = async (req, res, next) => {
         });
 
         // Send notifications (don't await - run in background)
-        telegramService.notifyNewOrder(order).catch(err =>
+        telegramService.sendOrderNotification(order).catch(err =>
             console.error('Telegram notification failed:', err.message)
         );
         emailService.notifyNewOrder(order).catch(err =>
