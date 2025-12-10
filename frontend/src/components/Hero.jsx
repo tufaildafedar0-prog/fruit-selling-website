@@ -106,7 +106,7 @@ const Hero = () => {
                             />
                         </div>
 
-                        {/* Floating Cards */}
+                        {/* Floating Cards - Hidden on mobile to prevent overlap */}
                         <motion.div
                             animate={{
                                 y: [0, -15, 0],
@@ -116,7 +116,7 @@ const Hero = () => {
                                 repeat: Infinity,
                                 ease: "easeInOut"
                             }}
-                            className="absolute top-10 -left-6 glass p-4 rounded-2xl shadow-xl"
+                            className="absolute top-10 -left-6 glass p-4 rounded-2xl shadow-xl hidden lg:block z-20"
                         >
                             <div className="flex items-center space-x-3">
                                 <span className="text-3xl">🍎</span>
@@ -136,7 +136,7 @@ const Hero = () => {
                                 repeat: Infinity,
                                 ease: "easeInOut"
                             }}
-                            className="absolute bottom-10 -right-6 glass p-4 rounded-2xl shadow-xl"
+                            className="absolute bottom-10 -right-6 glass p-4 rounded-2xl shadow-xl hidden lg:block z-20"
                         >
                             <div className="flex items-center space-x-3">
                                 <span className="text-3xl">🥭</span>
