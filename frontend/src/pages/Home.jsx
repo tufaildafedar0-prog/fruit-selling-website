@@ -133,8 +133,11 @@ const Home = () => {
                         viewport={{ once: true }}
                         className="text-center mt-12"
                     >
-                        <Link to="/retail" className="btn btn-primary text-lg group">
-                            View All Products
+                        <Link
+                            to="/retail"
+                            className="btn btn-primary text-lg inline-flex items-center justify-center group"
+                        >
+                            <span>View All Products</span>
                             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </motion.div>
