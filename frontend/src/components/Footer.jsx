@@ -1,9 +1,40 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from 'lucide-react';
-
+import { useState, useEffect } from 'react';
+import api from '../utils/api';
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
+    const [settings, setSettings] = useState({
+        siteName: 'Fruitify',
+        footerText: `© ${currentYear} Fruitify. All rights reserved. Made with ❤️ for fresh fruit lovers.`,
+        contactEmail: 'hello@fruitify.com',
+        contactPhone: '+1 (555) 123-4567',
+        address: '123 Fruit Street, Fresh City, FC 12345',
+        facebookUrl: 'https://facebook.com',
+        twitterUrl: 'https://twitter.com',
+        instagramUrl: 'https://instagram.com',
+    });
+
+    useEffect(() => {
+        // Fetch public settings (non-admin endpoint)
+        const fetchSettings = async () => {
+            try {
+                const response = await api.get('/settings');
+                if (response.data.success && response.data.data) {
+                    setSettings(prev => ({
+                        ...prev,
+                        ...response.data.data
+                    }));
+                }
+            } catch (error) {
+                // Silently fail - use defaults if API fails
+                console.error('Failed to load footer settings:', error);
+            }
+        };
+
+        fetchSettings();
+    }, []);
 
     return (
         <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
@@ -13,36 +44,44 @@ const Footer = () => {
                     <div className="space-y-4">
                         <div className="flex items-center space-x-2">
                             <span className="text-4xl">🍎</span>
-                            <span className="text-2xl font-display font-bold">Fruitify</span>
+                            <span className="text-2xl font-display font-bold">
+                                {settings.siteName || 'Fruitify'}
+                            </span>
                         </div>
                         <p className="text-gray-400 leading-relaxed">
-                            Premium fresh fruits delivered to your doorstep. Quality you can taste, freshness you can trust.
+                            {settings.tagline || 'Premium fresh fruits delivered to your doorstep. Quality you can taste, freshness you can trust.'}
                         </p>
                         <div className="flex space-x-4">
-                            <a
-                                href="https://facebook.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 bg-white/10 hover:bg-primary-500 rounded-lg transition-colors"
-                            >
-                                <Facebook className="w-5 h-5" />
-                            </a>
-                            <a
-                                href="https://twitter.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 bg-white/10 hover:bg-primary-500 rounded-lg transition-colors"
-                            >
-                                <Twitter className="w-5 h-5" />
-                            </a>
-                            <a
-                                href="https://instagram.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 bg-white/10 hover:bg-primary-500 rounded-lg transition-colors"
-                            >
-                                <Instagram className="w-5 h-5" />
-                            </a>
+                            {settings.facebookUrl && (
+                                <a
+                                    href={settings.facebookUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 bg-white/10 hover:bg-primary-500 rounded-lg transition-colors"
+                                >
+                                    <Facebook className="w-5 h-5" />
+                                </a>
+                            )}
+                            {settings.twitterUrl && (
+                                <a
+                                    href={settings.twitterUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 bg-white/10 hover:bg-primary-500 rounded-lg transition-colors"
+                                >
+                                    <Twitter className="w-5 h-5" />
+                                </a>
+                            )}
+                            {settings.instagramUrl && (
+                                <a
+                                    href={settings.instagramUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 bg-white/10 hover:bg-primary-500 rounded-lg transition-colors"
+                                >
+                                    <Instagram className="w-5 h-5" />
+                                </a>
+                            )}
                         </div>
                     </div>
 
@@ -104,18 +143,24 @@ const Footer = () => {
                     <div>
                         <h3 className="text-lg font-bold mb-4">Contact Us</h3>
                         <ul className="space-y-3">
-                            <li className="flex items-start space-x-3 text-gray-400">
-                                <MapPin className="w-5 h-5 text-primary-400 flex-shrink-0 mt-1" />
-                                <span>123 Fruit Street, Fresh City, FC 12345</span>
-                            </li>
-                            <li className="flex items-center space-x-3 text-gray-400">
-                                <Phone className="w-5 h-5 text-primary-400 flex-shrink-0" />
-                                <span>+1 (555) 123-4567</span>
-                            </li>
-                            <li className="flex items-center space-x-3 text-gray-400">
-                                <Mail className="w-5 h-5 text-primary-400 flex-shrink-0" />
-                                <span>hello@fruitify.com</span>
-                            </li>
+                            {settings.address && (
+                                <li className="flex items-start space-x-3 text-gray-400">
+                                    <MapPin className="w-5 h-5 text-primary-400 flex-shrink-0 mt-1" />
+                                    <span>{settings.address}{settings.city ? `, ${settings.city}` : ''}{settings.zip ? ` ${settings.zip}` : ''}</span>
+                                </li>
+                            )}
+                            {settings.contactPhone && (
+                                <li className="flex items-center space-x-3 text-gray-400">
+                                    <Phone className="w-5 h-5 text-primary-400 flex-shrink-0" />
+                                    <span>{settings.contactPhone}</span>
+                                </li>
+                            )}
+                            {settings.contactEmail && (
+                                <li className="flex items-center space-x-3 text-gray-400">
+                                    <Mail className="w-5 h-5 text-primary-400 flex-shrink-0" />
+                                    <span>{settings.contactEmail}</span>
+                                </li>
+                            )}
                         </ul>
                     </div>
                 </div>
@@ -142,7 +187,7 @@ const Footer = () => {
 
                 {/* Bottom Bar */}
                 <div className="mt-12 pt-8 border-t border-gray-700 text-center text-gray-400">
-                    <p>&copy; {currentYear} Fruitify. All rights reserved. Made with ❤️ for fresh fruit lovers.</p>
+                    <p>{settings.footerText || `© ${currentYear} Fruitify. All rights reserved. Made with ❤️ for fresh fruit lovers.`}</p>
                 </div>
             </div>
         </footer>
