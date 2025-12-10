@@ -83,6 +83,28 @@ export const createPaymentOrder = async (req, res, next) => {
             throw new AppError('Amount mismatch', 400);
         }
 
+        // FIXED: Check if Razorpay is configured - if not, skip gracefully
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            console.log('⚠️ Razorpay not configured - order will proceed as COD/PENDING');
+
+            // Update order to COD method
+            await prisma.order.update({
+                where: { id: parseInt(orderId) },
+                data: {
+                    paymentMethod: 'COD',
+                    paymentStatus: 'PENDING',
+                },
+            });
+
+            // Return skip response (NOT an error!)
+            return res.status(200).json({
+                success: false, // Frontend checks this to know to skip payment
+                message: 'Payment gateway not configured - order will be COD',
+                payment: 'SKIPPED',
+                method: 'COD'
+            });
+        }
+
         // Create Razorpay order
         // Amount must be in paise (smallest currency unit)
         // ₹100 = 10000 paise

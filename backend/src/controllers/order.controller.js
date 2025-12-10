@@ -302,6 +302,15 @@ export const updateOrderStatus = async (req, res, next) => {
             throw new AppError('Invalid order status', 400);
         }
 
+        // Get old status first
+        const oldOrder = await prisma.order.findUnique({
+            where: { id: parseInt(id) }
+        });
+
+        if (!oldOrder) {
+            throw new AppError('Order not found', 404);
+        }
+
         const order = await prisma.order.update({
             where: { id: parseInt(id) },
             data: { status },
@@ -315,8 +324,16 @@ export const updateOrderStatus = async (req, res, next) => {
             },
         });
 
-        // Emit socket event for real-time updates
-        socketService.emitOrderUpdate(order);
+        // FIXED: Emit socket event with correct signature
+        if (order.userId) {
+            socketService.emitOrderStatusUpdate(order.userId, {
+                orderId: order.id,
+                userId: order.userId,
+                oldStatus: oldOrder.status,
+                newStatus: status,
+                updatedAt: order.updatedAt
+            });
+        }
 
         res.json({
             success: true,
@@ -324,6 +341,7 @@ export const updateOrderStatus = async (req, res, next) => {
             data: { order },
         });
     } catch (error) {
+        console.error('Error updating order status:', error);
         next(error);
     }
 };
