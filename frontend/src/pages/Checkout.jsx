@@ -72,7 +72,7 @@ const Checkout = () => {
     const shipping = subtotal > 500 ? 0 : 40; // Free shipping above ₹500
     const total = subtotal + tax + shipping;
 
-    // MODIFIED: Handle Razorpay payment flow
+    // MODIFIED: Handle Razorpay payment flow (OPTIONAL - falls back to COD if not configured)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -92,44 +92,57 @@ const Checkout = () => {
             const orderResponse = await api.post('/orders', orderData);
             const order = orderResponse.data.data.order;
 
-            // Step 2: Create Razorpay payment order
-            const paymentOrderResponse = await api.post('/payments/create-order', {
-                orderId: order.id,
-                amount: order.total,
-            });
+            // Step 2: Try to create Razorpay payment order (OPTIONAL)
+            // If Razorpay not configured, skip payment and proceed as COD
+            try {
+                const paymentOrderResponse = await api.post('/payments/create-order', {
+                    orderId: order.id,
+                    amount: order.total,
+                });
 
-            const { orderId: razorpayOrderId, amount, currency, keyId } = paymentOrderResponse.data.data;
+                const { orderId: razorpayOrderId, amount, currency, keyId } = paymentOrderResponse.data.data;
 
-            // Step 3: Open Razorpay checkout
-            const options = {
-                key: keyId,
-                amount: amount,
-                currency: currency,
-                name: 'Fruitify',
-                description: `Order #${order.id}`,
-                order_id: razorpayOrderId,
-                handler: async function (response) {
-                    // Payment success handler
-                    await handlePaymentSuccess(response, order.id);
-                },
-                prefill: {
-                    name: formData.customerName,
-                    email: formData.customerEmail,
-                    contact: formData.customerPhone || '',
-                },
-                theme: {
-                    color: '#10b981', // Primary green color
-                },
-                modal: {
-                    ondismiss: function () {
-                        // Payment cancelled/failed
-                        handlePaymentFailure(order.id, 'Payment cancelled by user');
+                // Step 3: Open Razorpay checkout
+                const options = {
+                    key: keyId,
+                    amount: amount,
+                    currency: currency,
+                    name: 'Fruitify',
+                    description: `Order #${order.id}`,
+                    order_id: razorpayOrderId,
+                    handler: async function (response) {
+                        // Payment success handler
+                        await handlePaymentSuccess(response, order.id);
+                    },
+                    prefill: {
+                        name: formData.customerName,
+                        email: formData.customerEmail,
+                        contact: formData.customerPhone || '',
+                    },
+                    theme: {
+                        color: '#10b981', // Primary green color
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            // Payment cancelled/failed
+                            handlePaymentFailure(order.id, 'Payment cancelled by user');
+                        }
                     }
-                }
-            };
+                };
 
-            const razorpay = new window.Razorpay(options);
-            razorpay.open();
+                const razorpay = new window.Razorpay(options);
+                razorpay.open();
+
+            } catch (paymentError) {
+                // Razorpay not configured or payment creation failed
+                console.log('Razorpay not available, proceeding as COD:', paymentError);
+
+                // Order already created, just handle as COD/PENDING
+                toast.success(`Order #${order.id} placed successfully! Payment: COD/Pending`);
+                clearCart();
+                setLoading(false);
+                navigate('/orders');
+            }
 
         } catch (error) {
             console.error('Error creating order:', error);
