@@ -31,7 +31,7 @@ import AdminProducts from './pages/admin/Products';
 import AdminProductEdit from './pages/admin/ProductEdit';
 import AdminUsers from './pages/admin/Users';
 import AdminOrders from './pages/admin/Orders';
-import AdminSettings from './pages/admin/Settings';
+import AdminSettings from './pages/admin/Settings'; // NEW: Component-based structure
 import AdminProfile from './pages/admin/Profile';
 
 function App() {
